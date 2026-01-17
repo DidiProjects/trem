@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF API - Interface</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PDF API</h1>
+            <p>Interface para manipulação de arquivos PDF</p>
+        </header>
+
+        <div class="api-key-section">
+            <label for="apiKey">API Key</label>
+            <div class="input-group">
+                <input type="password" id="apiKey" placeholder="Digite sua API Key">
+                <button onclick="toggleApiKeyVisibility()" class="btn-icon">👁</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="split">Split</button>
+            <button class="tab" data-tab="extract">Extract</button>
+            <button class="tab" data-tab="merge">Merge</button>
+            <button class="tab" data-tab="add-password">Add Password</button>
+            <button class="tab" data-tab="remove-password">Remove Password</button>
+            <button class="tab" data-tab="info">Info</button>
+        </div>
+
+        <div class="tab-content active" id="split">
+            <h2>Split PDF</h2>
+            <p>Extraia páginas específicas do seu PDF</p>
+            <form id="splitForm" class="api-form">
+                <div class="form-group">
+                    <label for="splitFile">Arquivo PDF</label>
+                    <input type="file" id="splitFile" accept=".pdf" required>
+                </div>
+                <div class="form-group">
+                    <label for="splitPages">Páginas</label>
+                    <input type="text" id="splitPages" placeholder="Ex: 1-3,5,7-10" required>
+                    <small>Use vírgulas para separar e hífen para intervalos</small>
+                </div>
+                <button type="submit" class="btn-primary">Processar</button>
+            </form>
+        </div>
+
+        <div class="tab-content" id="extract">
+            <h2>Extract Pages</h2>
+            <p>Separe todas as páginas em arquivos individuais (ZIP)</p>
+            <form id="extractForm" class="api-form">
+                <div class="form-group">
+                    <label for="extractFile">Arquivo PDF</label>
+                    <input type="file" id="extractFile" accept=".pdf" required>
+                </div>
+                <button type="submit" class="btn-primary">Extrair Páginas</button>
+            </form>
+        </div>
+
+        <div class="tab-content" id="merge">
+            <h2>Merge PDFs</h2>
+            <p>Junte múltiplos PDFs em um único arquivo</p>
+            <form id="mergeForm" class="api-form">
+                <div class="form-group">
+                    <label for="mergeFiles">Arquivos PDF</label>
+                    <input type="file" id="mergeFiles" accept=".pdf" multiple required>
+                    <small>Selecione 2 ou mais arquivos</small>
+                </div>
+                <button type="submit" class="btn-primary">Mesclar PDFs</button>
+            </form>
+        </div>
+
+        <div class="tab-content" id="add-password">
+            <h2>Add Password</h2>
+            <p>Adicione proteção por senha ao seu PDF</p>
+            <form id="addPasswordForm" class="api-form">
+                <div class="form-group">
+                    <label for="addPwdFile">Arquivo PDF</label>
+                    <input type="file" id="addPwdFile" accept=".pdf" required>
+                </div>
+                <div class="form-group">
+                    <label for="userPassword">Senha do Usuário</label>
+                    <input type="password" id="userPassword" placeholder="Senha para abrir o PDF" required>
+                </div>
+                <div class="form-group">
+                    <label for="ownerPassword">Senha do Proprietário (opcional)</label>
+                    <input type="password" id="ownerPassword" placeholder="Senha para edição">
+                </div>
+                <button type="submit" class="btn-primary">Proteger PDF</button>
+            </form>
+        </div>
+
+        <div class="tab-content" id="remove-password">
+            <h2>Remove Password</h2>
+            <p>Remova a senha de um PDF protegido</p>
+            <form id="removePasswordForm" class="api-form">
+                <div class="form-group">
+                    <label for="removePwdFile">Arquivo PDF</label>
+                    <input type="file" id="removePwdFile" accept=".pdf" required>
+                </div>
+                <div class="form-group">
+                    <label for="currentPassword">Senha Atual</label>
+                    <input type="password" id="currentPassword" placeholder="Senha do PDF" required>
+                </div>
+                <button type="submit" class="btn-primary">Remover Senha</button>
+            </form>
+        </div>
+
+        <div class="tab-content" id="info">
+            <h2>PDF Info</h2>
+            <p>Obtenha informações e metadados do PDF</p>
+            <form id="infoForm" class="api-form">
+                <div class="form-group">
+                    <label for="infoFile">Arquivo PDF</label>
+                    <input type="file" id="infoFile" accept=".pdf" required>
+                </div>
+                <button type="submit" class="btn-primary">Obter Informações</button>
+            </form>
+            <div id="infoResult" class="result-box hidden"></div>
+        </div>
+
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Processando...</p>
+        </div>
+
+        <div id="toast" class="toast hidden"></div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

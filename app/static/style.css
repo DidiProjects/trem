@@ -1,0 +1,342 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    min-height: 100vh;
+    color: #e4e4e4;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    background: linear-gradient(90deg, #00d9ff, #00ff88);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+header p {
+    color: #888;
+    margin-top: 0.5rem;
+}
+
+.api-key-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.api-key-section label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #00d9ff;
+}
+
+.input-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.input-group input {
+    flex: 1;
+}
+
+.btn-icon {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 0 1rem;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.tab {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #888;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.tab.active {
+    background: linear-gradient(135deg, #00d9ff, #00ff88);
+    color: #1a1a2e;
+    border-color: transparent;
+}
+
+.tab-content {
+    display: none;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tab-content h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+
+.tab-content > p {
+    color: #888;
+    margin-bottom: 1.5rem;
+}
+
+.api-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #ccc;
+}
+
+.form-group small {
+    color: #666;
+    font-size: 0.8rem;
+}
+
+input[type="text"],
+input[type="password"] {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 0.875rem 1rem;
+    color: #fff;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    border-color: #00d9ff;
+    box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.2);
+}
+
+input[type="file"] {
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 2rem;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+input[type="file"]:hover {
+    border-color: #00d9ff;
+    background: rgba(0, 217, 255, 0.05);
+}
+
+input[type="file"]::file-selector-button {
+    background: linear-gradient(135deg, #00d9ff, #00ff88);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    color: #1a1a2e;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 1rem;
+    transition: all 0.3s ease;
+}
+
+input[type="file"]::file-selector-button:hover {
+    transform: scale(1.05);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #00d9ff, #00ff88);
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    color: #1a1a2e;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 0.5rem;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 217, 255, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.result-box {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.result-box pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: #00ff88;
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #00d9ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading p {
+    margin-top: 1rem;
+    color: #888;
+}
+
+.toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    z-index: 1001;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.toast.success {
+    background: linear-gradient(135deg, #00ff88, #00d9ff);
+    color: #1a1a2e;
+}
+
+.toast.error {
+    background: linear-gradient(135deg, #ff4757, #ff6b81);
+    color: #fff;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 1rem;
+    }
+
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .tabs {
+        justify-content: center;
+    }
+
+    .tab {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .tab-content {
+        padding: 1.5rem;
+    }
+}
