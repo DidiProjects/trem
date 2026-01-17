@@ -91,6 +91,69 @@ header p {
     background: rgba(255, 255, 255, 0.2);
 }
 
+.main-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1.5rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    padding: 0.25rem;
+}
+
+.main-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #888;
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.main-tab:hover {
+    color: #fff;
+}
+
+.main-tab.active {
+    background: linear-gradient(135deg, #00d9ff, #00ff88);
+    color: #1a1a2e;
+}
+
+.section-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.section-content.active {
+    display: block;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #888;
+}
+
 .endpoints-section {
     display: flex;
     flex-direction: column;

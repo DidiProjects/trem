@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         localStorage.setItem('apiKey', this.value);
     });
 
+    setupMainTabs();
     setupFormHandlers();
 });
 
@@ -27,6 +28,21 @@ async function loadConfig() {
     document.getElementById('baseUrlDisplay').textContent = API_BASE_URL;
     document.querySelectorAll('.base-url').forEach(el => {
         el.textContent = API_BASE_URL;
+    });
+}
+
+function setupMainTabs() {
+    const mainTabs = document.querySelectorAll('.main-tab');
+    const sections = document.querySelectorAll('.section-content');
+
+    mainTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            mainTabs.forEach(t => t.classList.remove('active'));
+            sections.forEach(s => s.classList.remove('active'));
+            
+            tab.classList.add('active');
+            document.getElementById(`section-${tab.dataset.section}`).classList.add('active');
+        });
     });
 }
 
