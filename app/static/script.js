@@ -68,6 +68,17 @@ function downloadBlob(blob, filename) {
     document.body.removeChild(a);
 }
 
+function getFilenameFromResponse(response, fallback) {
+    const disposition = response.headers.get('Content-Disposition');
+    if (disposition) {
+        const match = disposition.match(/filename=(.+)$/);
+        if (match) {
+            return match[1].replace(/['"]/g, '');
+        }
+    }
+    return fallback;
+}
+
 async function makeRequest(endpoint, formData) {
     const apiKey = getApiKey();
     if (!apiKey) return null;
@@ -91,9 +102,8 @@ async function makeRequest(endpoint, formData) {
         return response;
     } catch (error) {
         showToast(error.message, 'error');
-        return null;
-    } finally {
         hideLoading();
+        return null;
     }
 }
 
@@ -106,8 +116,10 @@ function setupFormHandlers() {
 
         const response = await makeRequest('/pdf/split', formData);
         if (response) {
+            const filename = getFilenameFromResponse(response, 'result.pdf');
             const blob = await response.blob();
-            downloadBlob(blob, 'split_result.pdf');
+            hideLoading();
+            downloadBlob(blob, filename);
             showToast('PDF dividido com sucesso!');
         }
     });
@@ -119,8 +131,10 @@ function setupFormHandlers() {
 
         const response = await makeRequest('/pdf/extract-pages', formData);
         if (response) {
+            const filename = getFilenameFromResponse(response, 'pages.zip');
             const blob = await response.blob();
-            downloadBlob(blob, 'pages.zip');
+            hideLoading();
+            downloadBlob(blob, filename);
             showToast('Páginas extraídas com sucesso!');
         }
     });
@@ -141,8 +155,10 @@ function setupFormHandlers() {
 
         const response = await makeRequest('/pdf/merge', formData);
         if (response) {
+            const filename = getFilenameFromResponse(response, 'merged.pdf');
             const blob = await response.blob();
-            downloadBlob(blob, 'merged.pdf');
+            hideLoading();
+            downloadBlob(blob, filename);
             showToast('PDFs mesclados com sucesso!');
         }
     });
@@ -160,8 +176,10 @@ function setupFormHandlers() {
 
         const response = await makeRequest('/pdf/add-password', formData);
         if (response) {
+            const filename = getFilenameFromResponse(response, 'protected.pdf');
             const blob = await response.blob();
-            downloadBlob(blob, 'protected.pdf');
+            hideLoading();
+            downloadBlob(blob, filename);
             showToast('Senha adicionada com sucesso!');
         }
     });
@@ -174,8 +192,10 @@ function setupFormHandlers() {
 
         const response = await makeRequest('/pdf/remove-password', formData);
         if (response) {
+            const filename = getFilenameFromResponse(response, 'unlocked.pdf');
             const blob = await response.blob();
-            downloadBlob(blob, 'unlocked.pdf');
+            hideLoading();
+            downloadBlob(blob, filename);
             showToast('Senha removida com sucesso!');
         }
     });
@@ -188,6 +208,7 @@ function setupFormHandlers() {
         const response = await makeRequest('/pdf/info', formData);
         if (response) {
             const data = await response.json();
+            hideLoading();
             const resultBox = document.getElementById('infoResult');
             resultBox.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
             resultBox.classList.remove('hidden');
