@@ -11,6 +11,10 @@
         <header>
             <h1>PDF API</h1>
             <p>Interface para manipulação de arquivos PDF</p>
+            <div class="api-url-display">
+                <span class="label">Base URL:</span>
+                <code id="baseUrlDisplay"></code>
+            </div>
         </header>
 
         <div class="api-key-section">
@@ -21,104 +25,270 @@
             </div>
         </div>
 
-        <div class="tabs">
-            <button class="tab active" data-tab="split">Split</button>
-            <button class="tab" data-tab="extract">Extract</button>
-            <button class="tab" data-tab="merge">Merge</button>
-            <button class="tab" data-tab="add-password">Add Password</button>
-            <button class="tab" data-tab="remove-password">Remove Password</button>
-            <button class="tab" data-tab="info">Info</button>
-        </div>
+        <div class="endpoints-section">
+            <div class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                    <div class="endpoint-info">
+                        <span class="method post">POST</span>
+                        <span class="path">/pdf/split</span>
+                        <span class="description">Extrair páginas específicas do PDF</span>
+                    </div>
+                    <span class="chevron">▼</span>
+                </div>
+                <div class="endpoint-body">
+                    <div class="endpoint-details">
+                        <div class="detail-section">
+                            <h4>Parameters</h4>
+                            <table class="params-table">
+                                <tr><th>Nome</th><th>Tipo</th><th>Descrição</th></tr>
+                                <tr><td>file</td><td>file</td><td>Arquivo PDF</td></tr>
+                                <tr><td>pages</td><td>string</td><td>Páginas a extrair (ex: 1-3,5,7-10)</td></tr>
+                            </table>
+                        </div>
+                        <div class="detail-section">
+                            <h4>Headers</h4>
+                            <pre class="code-block">X-API-Key: sua-api-key</pre>
+                        </div>
+                        <div class="detail-section">
+                            <h4>cURL Example</h4>
+                            <pre class="code-block curl-example" data-endpoint="/pdf/split">curl -X POST "<span class="base-url"></span>/pdf/split" \
+  -H "X-API-Key: sua-api-key" \
+  -F "file=@documento.pdf" \
+  -F "pages=1-3"</pre>
+                        </div>
+                    </div>
+                    <form id="splitForm" class="api-form">
+                        <div class="form-group">
+                            <label for="splitFile">Arquivo PDF</label>
+                            <input type="file" id="splitFile" accept=".pdf" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="splitPages">Páginas</label>
+                            <input type="text" id="splitPages" placeholder="Ex: 1-3,5,7-10" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Executar</button>
+                    </form>
+                </div>
+            </div>
 
-        <div class="tab-content active" id="split">
-            <h2>Split PDF</h2>
-            <p>Extraia páginas específicas do seu PDF</p>
-            <form id="splitForm" class="api-form">
-                <div class="form-group">
-                    <label for="splitFile">Arquivo PDF</label>
-                    <input type="file" id="splitFile" accept=".pdf" required>
+            <div class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                    <div class="endpoint-info">
+                        <span class="method post">POST</span>
+                        <span class="path">/pdf/extract-pages</span>
+                        <span class="description">Separar todas as páginas em arquivos individuais</span>
+                    </div>
+                    <span class="chevron">▼</span>
                 </div>
-                <div class="form-group">
-                    <label for="splitPages">Páginas</label>
-                    <input type="text" id="splitPages" placeholder="Ex: 1-3,5,7-10" required>
-                    <small>Use vírgulas para separar e hífen para intervalos</small>
+                <div class="endpoint-body">
+                    <div class="endpoint-details">
+                        <div class="detail-section">
+                            <h4>Parameters</h4>
+                            <table class="params-table">
+                                <tr><th>Nome</th><th>Tipo</th><th>Descrição</th></tr>
+                                <tr><td>file</td><td>file</td><td>Arquivo PDF</td></tr>
+                            </table>
+                        </div>
+                        <div class="detail-section">
+                            <h4>Response</h4>
+                            <pre class="code-block">application/zip (arquivo ZIP com todas as páginas)</pre>
+                        </div>
+                        <div class="detail-section">
+                            <h4>cURL Example</h4>
+                            <pre class="code-block curl-example">curl -X POST "<span class="base-url"></span>/pdf/extract-pages" \
+  -H "X-API-Key: sua-api-key" \
+  -F "file=@documento.pdf" \
+  --output paginas.zip</pre>
+                        </div>
+                    </div>
+                    <form id="extractForm" class="api-form">
+                        <div class="form-group">
+                            <label for="extractFile">Arquivo PDF</label>
+                            <input type="file" id="extractFile" accept=".pdf" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Executar</button>
+                    </form>
                 </div>
-                <button type="submit" class="btn-primary">Processar</button>
-            </form>
-        </div>
+            </div>
 
-        <div class="tab-content" id="extract">
-            <h2>Extract Pages</h2>
-            <p>Separe todas as páginas em arquivos individuais (ZIP)</p>
-            <form id="extractForm" class="api-form">
-                <div class="form-group">
-                    <label for="extractFile">Arquivo PDF</label>
-                    <input type="file" id="extractFile" accept=".pdf" required>
+            <div class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                    <div class="endpoint-info">
+                        <span class="method post">POST</span>
+                        <span class="path">/pdf/merge</span>
+                        <span class="description">Juntar múltiplos PDFs em um único arquivo</span>
+                    </div>
+                    <span class="chevron">▼</span>
                 </div>
-                <button type="submit" class="btn-primary">Extrair Páginas</button>
-            </form>
-        </div>
+                <div class="endpoint-body">
+                    <div class="endpoint-details">
+                        <div class="detail-section">
+                            <h4>Parameters</h4>
+                            <table class="params-table">
+                                <tr><th>Nome</th><th>Tipo</th><th>Descrição</th></tr>
+                                <tr><td>files</td><td>file[]</td><td>2 ou mais arquivos PDF</td></tr>
+                            </table>
+                        </div>
+                        <div class="detail-section">
+                            <h4>cURL Example</h4>
+                            <pre class="code-block curl-example">curl -X POST "<span class="base-url"></span>/pdf/merge" \
+  -H "X-API-Key: sua-api-key" \
+  -F "files=@doc1.pdf" \
+  -F "files=@doc2.pdf" \
+  --output merged.pdf</pre>
+                        </div>
+                    </div>
+                    <form id="mergeForm" class="api-form">
+                        <div class="form-group">
+                            <label for="mergeFiles">Arquivos PDF</label>
+                            <input type="file" id="mergeFiles" accept=".pdf" multiple required>
+                            <small>Selecione 2 ou mais arquivos</small>
+                        </div>
+                        <button type="submit" class="btn-primary">Executar</button>
+                    </form>
+                </div>
+            </div>
 
-        <div class="tab-content" id="merge">
-            <h2>Merge PDFs</h2>
-            <p>Junte múltiplos PDFs em um único arquivo</p>
-            <form id="mergeForm" class="api-form">
-                <div class="form-group">
-                    <label for="mergeFiles">Arquivos PDF</label>
-                    <input type="file" id="mergeFiles" accept=".pdf" multiple required>
-                    <small>Selecione 2 ou mais arquivos</small>
+            <div class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                    <div class="endpoint-info">
+                        <span class="method post">POST</span>
+                        <span class="path">/pdf/add-password</span>
+                        <span class="description">Adicionar senha de proteção ao PDF</span>
+                    </div>
+                    <span class="chevron">▼</span>
                 </div>
-                <button type="submit" class="btn-primary">Mesclar PDFs</button>
-            </form>
-        </div>
+                <div class="endpoint-body">
+                    <div class="endpoint-details">
+                        <div class="detail-section">
+                            <h4>Parameters</h4>
+                            <table class="params-table">
+                                <tr><th>Nome</th><th>Tipo</th><th>Descrição</th></tr>
+                                <tr><td>file</td><td>file</td><td>Arquivo PDF</td></tr>
+                                <tr><td>user_password</td><td>string</td><td>Senha para abrir o PDF</td></tr>
+                                <tr><td>owner_password</td><td>string</td><td>Senha do proprietário (opcional)</td></tr>
+                            </table>
+                        </div>
+                        <div class="detail-section">
+                            <h4>cURL Example</h4>
+                            <pre class="code-block curl-example">curl -X POST "<span class="base-url"></span>/pdf/add-password" \
+  -H "X-API-Key: sua-api-key" \
+  -F "file=@documento.pdf" \
+  -F "user_password=minhasenha" \
+  --output protegido.pdf</pre>
+                        </div>
+                    </div>
+                    <form id="addPasswordForm" class="api-form">
+                        <div class="form-group">
+                            <label for="addPwdFile">Arquivo PDF</label>
+                            <input type="file" id="addPwdFile" accept=".pdf" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="userPassword">Senha do Usuário</label>
+                            <input type="password" id="userPassword" placeholder="Senha para abrir o PDF" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="ownerPassword">Senha do Proprietário (opcional)</label>
+                            <input type="password" id="ownerPassword" placeholder="Senha para edição">
+                        </div>
+                        <button type="submit" class="btn-primary">Executar</button>
+                    </form>
+                </div>
+            </div>
 
-        <div class="tab-content" id="add-password">
-            <h2>Add Password</h2>
-            <p>Adicione proteção por senha ao seu PDF</p>
-            <form id="addPasswordForm" class="api-form">
-                <div class="form-group">
-                    <label for="addPwdFile">Arquivo PDF</label>
-                    <input type="file" id="addPwdFile" accept=".pdf" required>
+            <div class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                    <div class="endpoint-info">
+                        <span class="method post">POST</span>
+                        <span class="path">/pdf/remove-password</span>
+                        <span class="description">Remover senha de um PDF protegido</span>
+                    </div>
+                    <span class="chevron">▼</span>
                 </div>
-                <div class="form-group">
-                    <label for="userPassword">Senha do Usuário</label>
-                    <input type="password" id="userPassword" placeholder="Senha para abrir o PDF" required>
+                <div class="endpoint-body">
+                    <div class="endpoint-details">
+                        <div class="detail-section">
+                            <h4>Parameters</h4>
+                            <table class="params-table">
+                                <tr><th>Nome</th><th>Tipo</th><th>Descrição</th></tr>
+                                <tr><td>file</td><td>file</td><td>Arquivo PDF protegido</td></tr>
+                                <tr><td>password</td><td>string</td><td>Senha atual do PDF</td></tr>
+                            </table>
+                        </div>
+                        <div class="detail-section">
+                            <h4>cURL Example</h4>
+                            <pre class="code-block curl-example">curl -X POST "<span class="base-url"></span>/pdf/remove-password" \
+  -H "X-API-Key: sua-api-key" \
+  -F "file=@protegido.pdf" \
+  -F "password=minhasenha" \
+  --output desbloqueado.pdf</pre>
+                        </div>
+                    </div>
+                    <form id="removePasswordForm" class="api-form">
+                        <div class="form-group">
+                            <label for="removePwdFile">Arquivo PDF</label>
+                            <input type="file" id="removePwdFile" accept=".pdf" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="currentPassword">Senha Atual</label>
+                            <input type="password" id="currentPassword" placeholder="Senha do PDF" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Executar</button>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label for="ownerPassword">Senha do Proprietário (opcional)</label>
-                    <input type="password" id="ownerPassword" placeholder="Senha para edição">
-                </div>
-                <button type="submit" class="btn-primary">Proteger PDF</button>
-            </form>
-        </div>
+            </div>
 
-        <div class="tab-content" id="remove-password">
-            <h2>Remove Password</h2>
-            <p>Remova a senha de um PDF protegido</p>
-            <form id="removePasswordForm" class="api-form">
-                <div class="form-group">
-                    <label for="removePwdFile">Arquivo PDF</label>
-                    <input type="file" id="removePwdFile" accept=".pdf" required>
+            <div class="endpoint-card">
+                <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                    <div class="endpoint-info">
+                        <span class="method post">POST</span>
+                        <span class="path">/pdf/info</span>
+                        <span class="description">Obter informações e metadados do PDF</span>
+                    </div>
+                    <span class="chevron">▼</span>
                 </div>
-                <div class="form-group">
-                    <label for="currentPassword">Senha Atual</label>
-                    <input type="password" id="currentPassword" placeholder="Senha do PDF" required>
+                <div class="endpoint-body">
+                    <div class="endpoint-details">
+                        <div class="detail-section">
+                            <h4>Parameters</h4>
+                            <table class="params-table">
+                                <tr><th>Nome</th><th>Tipo</th><th>Descrição</th></tr>
+                                <tr><td>file</td><td>file</td><td>Arquivo PDF</td></tr>
+                            </table>
+                        </div>
+                        <div class="detail-section">
+                            <h4>Response Example</h4>
+                            <pre class="code-block">{
+  "filename": "documento.pdf",
+  "pages": 10,
+  "encrypted": false,
+  "pdf_version": "1.7",
+  "metadata": {
+    "title": "Meu Documento",
+    "author": "Autor",
+    "subject": null,
+    "creator": "App",
+    "producer": "pikepdf"
+  }
+}</pre>
+                        </div>
+                        <div class="detail-section">
+                            <h4>cURL Example</h4>
+                            <pre class="code-block curl-example">curl -X POST "<span class="base-url"></span>/pdf/info" \
+  -H "X-API-Key: sua-api-key" \
+  -F "file=@documento.pdf"</pre>
+                        </div>
+                    </div>
+                    <form id="infoForm" class="api-form">
+                        <div class="form-group">
+                            <label for="infoFile">Arquivo PDF</label>
+                            <input type="file" id="infoFile" accept=".pdf" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Executar</button>
+                    </form>
+                    <div id="infoResult" class="result-box hidden"></div>
                 </div>
-                <button type="submit" class="btn-primary">Remover Senha</button>
-            </form>
-        </div>
-
-        <div class="tab-content" id="info">
-            <h2>PDF Info</h2>
-            <p>Obtenha informações e metadados do PDF</p>
-            <form id="infoForm" class="api-form">
-                <div class="form-group">
-                    <label for="infoFile">Arquivo PDF</label>
-                    <input type="file" id="infoFile" accept=".pdf" required>
-                </div>
-                <button type="submit" class="btn-primary">Obter Informações</button>
-            </form>
-            <div id="infoResult" class="result-box hidden"></div>
+            </div>
         </div>
 
         <div id="loading" class="loading hidden">

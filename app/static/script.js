@@ -1,17 +1,8 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const tabs = document.querySelectorAll('.tab');
-    const tabContents = document.querySelectorAll('.tab-content');
+let API_BASE_URL = '';
 
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            tabContents.forEach(c => c.classList.remove('active'));
-            
-            tab.classList.add('active');
-            document.getElementById(tab.dataset.tab).classList.add('active');
-        });
-    });
-
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadConfig();
+    
     const savedApiKey = localStorage.getItem('apiKey');
     if (savedApiKey) {
         document.getElementById('apiKey').value = savedApiKey;
@@ -23,6 +14,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     setupFormHandlers();
 });
+
+async function loadConfig() {
+    try {
+        const response = await fetch('/config');
+        const config = await response.json();
+        API_BASE_URL = config.api_url;
+    } catch {
+        API_BASE_URL = window.location.origin;
+    }
+    
+    document.getElementById('baseUrlDisplay').textContent = API_BASE_URL;
+    document.querySelectorAll('.base-url').forEach(el => {
+        el.textContent = API_BASE_URL;
+    });
+}
+
+function toggleEndpoint(header) {
+    const card = header.parentElement;
+    card.classList.toggle('open');
+}
 
 function toggleApiKeyVisibility() {
     const input = document.getElementById('apiKey');

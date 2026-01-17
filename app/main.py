@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
 from app.routers import pdf
+from app.config import get_settings
 
 app = FastAPI(title="PDF API", version="1.0.0")
 
@@ -15,6 +16,12 @@ app.include_router(pdf.router, prefix="/pdf", tags=["PDF"])
 @app.get("/")
 async def root():
     return FileResponse(static_dir / "index.html")
+
+
+@app.get("/config")
+async def get_config():
+    settings = get_settings()
+    return {"api_url": settings.API_URL}
 
 
 @app.get("/health")
