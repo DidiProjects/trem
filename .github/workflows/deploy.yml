@@ -1,0 +1,147 @@
+name: Deploy to Home Server
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout do código
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Build da imagem Docker otimizada
+      - name: Build Docker image
+        run: |
+          docker build -t trem-api:latest .
+
+      # Conectar ao Tailscale com authkey
+      - name: Setup Tailscale
+        uses: tailscale/github-action@v2
+        with:
+          authkey: ${{ secrets.TAILSCALE_CLIENT_SECRET }}
+          tags: tag:github-actions
+
+      # Configurar SSH
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # Enviar imagem Docker
+      - name: Push Docker image to Home Server
+        run: |
+          docker save trem-api:latest | gzip -1 | ssh -o StrictHostKeyChecking=no -p 1024 diego@${{ vars.TAILSCALE_IP }} "gunzip | sudo docker load"
+
+      # Deploy container
+      - name: Deploy container on Home Server
+        run: |
+          ssh -o StrictHostKeyChecking=no -p 1024 diego@${{ vars.TAILSCALE_IP }} << 'EOF'
+          
+          # Parar e remover container atual
+          sudo docker stop trem-api || true
+          sudo docker rm trem-api || true
+          
+          # Executar novo container COM as variáveis de porta
+          sudo docker run -d --name trem-api \
+            --label app=trem-api \
+            --label project=trem \
+            -p 127.0.0.1:${{ vars.API_PORT }}:${{ vars.CONTAINER_PORT }} \
+            --restart=unless-stopped \
+            --network=bridge \
+            -e API_PORT=${{ vars.API_PORT }} \
+            -e API_URL=${{ vars.API_URL }} \
+            -e API_KEY=${{ secrets.API_KEY }} \
+            -e UPLOAD_DIR=/tmp/uploads \
+            -e MAX_FILE_SIZE=52428800 \
+            trem-api:latest
+          
+          EOF
+
+      # Verificação com retry
+      - name: Verify deployment success
+        run: |
+          ssh -o StrictHostKeyChecking=no -p 1024 diego@${{ vars.TAILSCALE_IP }} << 'EOF'
+          
+          echo "Aguardando inicialização do container..."
+          sleep 10
+          
+          # Verificar se o container está rodando
+          if sudo docker ps | grep -q trem-api; then
+            echo "Container trem-api está rodando"
+          else
+            echo "Container trem-api não está rodando"
+            sudo docker logs --tail 20 trem-api
+            exit 1
+          fi
+          
+          # Verificar health check com timeout
+          echo "Verificando health check..."
+          for i in {1..6}; do
+            if sudo docker inspect trem-api --format='{{.State.Health.Status}}' 2>/dev/null | grep -q "healthy"; then
+              echo "Aplicação está saudável"
+              break
+            elif [ $i -eq 6 ]; then
+              echo "Health check não passou, mas container está rodando"
+              sudo docker logs --tail 10 trem-api
+            else
+              echo "Aguardando health check... ($i/6)"
+              sleep 10
+            fi
+          done
+          
+          EOF
+
+      # Status final e limpeza
+      - name: Final status and cleanup
+        run: |
+          ssh -o StrictHostKeyChecking=no -p 1024 diego@${{ vars.TAILSCALE_IP }} << 'EOF'
+          
+          echo "=== Status final ==="
+          sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+          
+          echo "=== Logs recentes ==="
+          sudo docker logs --tail 10 trem-api
+          
+          echo "=== Uso de recursos ==="
+          free -h
+          sudo docker stats --no-stream trem-api || echo "Stats não disponível"
+          
+          echo "=== Teste de conectividade ==="
+          curl -s -I http://localhost:${{ vars.API_PORT }}/health || echo "Health check local falhou"
+          
+          echo "=== Limpeza SEGURA (apenas trem-api) ==="
+          
+          # 1. Remover apenas imagens antigas do trem-api (manter latest)
+          echo "Removendo versões antigas do trem-api..."
+          sudo docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | \
+          grep "^trem-api:" | grep -v ":latest$" | awk '{print $2}' | \
+          head -n 5 | xargs -r sudo docker rmi || true
+          
+          # 2. Remover apenas imagens dangling do trem-api
+          echo "Removendo imagens órfãs do trem-api..."
+          sudo docker images --filter "dangling=true" --filter "label=app=trem-api" -q | \
+          xargs -r sudo docker rmi || true
+          
+          # 3. Manter apenas últimos 3 backups do trem-api
+          echo "Mantendo apenas 3 backups do trem-api..."
+          sudo docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | \
+          grep "^trem-api:backup-" | tail -n +4 | awk '{print $2}' | \
+          xargs -r sudo docker rmi || true
+          
+          # 4. Remover apenas containers órfãos do trem-api
+          echo "Removendo containers órfãos do trem-api..."
+          sudo docker ps -a --filter "name=trem-api" --filter "status=exited" -q | \
+          xargs -r sudo docker rm || true
+          
+          echo "=== Status pós-limpeza ==="
+          echo "Imagens do trem-api restantes:"
+          sudo docker images | grep "trem-api" || echo "Nenhuma imagem trem-api encontrada"
+          echo "Espaço usado pelo Docker:"
+          sudo docker system df
+          
+          echo "Deploy e limpeza seguros concluídos!"
+          
+          EOF
