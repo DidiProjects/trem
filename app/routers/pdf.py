@@ -5,11 +5,16 @@ import zipfile
 from typing import List, Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
-from pypdf import PdfReader, PdfWriter
+import pikepdf
 from app.auth import verify_api_key
 from app.config import get_settings
 
 router = APIRouter()
+
+
+def get_output_filename(original: str, operation: str) -> str:
+    name = original.rsplit(".", 1)[0]
+    return f"{name}-{operation}.pdf"
 
 
 @router.post("/split")
@@ -22,23 +27,30 @@ async def split_pdf(
         raise HTTPException(status_code=400, detail="Arquivo deve ser PDF")
     
     content = await file.read()
-    reader = PdfReader(io.BytesIO(content))
-    total_pages = len(reader.pages)
     
+    try:
+        pdf = pikepdf.open(io.BytesIO(content))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Erro ao abrir PDF: {str(e)}")
+    
+    total_pages = len(pdf.pages)
     page_numbers = parse_page_ranges(pages, total_pages)
     
-    writer = PdfWriter()
+    output_pdf = pikepdf.new()
     for page_num in page_numbers:
-        writer.add_page(reader.pages[page_num - 1])
+        output_pdf.pages.append(pdf.pages[page_num - 1])
     
     output = io.BytesIO()
-    writer.write(output)
+    output_pdf.save(output)
     output.seek(0)
+    
+    pdf.close()
+    output_pdf.close()
     
     return StreamingResponse(
         output,
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename=split_{file.filename}"}
+        headers={"Content-Disposition": f"attachment; filename={get_output_filename(file.filename, 'split')}"}
     )
 
 
@@ -51,24 +63,31 @@ async def extract_pages(
         raise HTTPException(status_code=400, detail="Arquivo deve ser PDF")
     
     content = await file.read()
-    reader = PdfReader(io.BytesIO(content))
+    
+    try:
+        pdf = pikepdf.open(io.BytesIO(content))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Erro ao abrir PDF: {str(e)}")
     
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        for i, page in enumerate(reader.pages):
-            writer = PdfWriter()
-            writer.add_page(page)
+        for i, page in enumerate(pdf.pages):
+            page_pdf = pikepdf.new()
+            page_pdf.pages.append(page)
             page_buffer = io.BytesIO()
-            writer.write(page_buffer)
+            page_pdf.save(page_buffer)
             page_buffer.seek(0)
             zip_file.writestr(f"page_{i + 1}.pdf", page_buffer.read())
+            page_pdf.close()
     
     zip_buffer.seek(0)
+    pdf.close()
     
+    output_name = file.filename.rsplit(".", 1)[0] + "-extracted.zip"
     return StreamingResponse(
         zip_buffer,
         media_type="application/zip",
-        headers={"Content-Disposition": f"attachment; filename={file.filename.replace('.pdf', '_pages.zip')}"}
+        headers={"Content-Disposition": f"attachment; filename={output_name}"}
     )
 
 
@@ -80,24 +99,30 @@ async def merge_pdfs(
     if len(files) < 2:
         raise HTTPException(status_code=400, detail="Forneça pelo menos 2 arquivos PDF")
     
-    writer = PdfWriter()
+    output_pdf = pikepdf.new()
     
     for file in files:
         if not file.filename.lower().endswith(".pdf"):
             raise HTTPException(status_code=400, detail=f"Arquivo {file.filename} não é PDF")
         content = await file.read()
-        reader = PdfReader(io.BytesIO(content))
-        for page in reader.pages:
-            writer.add_page(page)
+        try:
+            pdf = pikepdf.open(io.BytesIO(content))
+            for page in pdf.pages:
+                output_pdf.pages.append(page)
+            pdf.close()
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Erro ao abrir {file.filename}: {str(e)}")
     
     output = io.BytesIO()
-    writer.write(output)
+    output_pdf.save(output)
     output.seek(0)
+    output_pdf.close()
     
+    first_name = files[0].filename.rsplit(".", 1)[0]
     return StreamingResponse(
         output,
         media_type="application/pdf",
-        headers={"Content-Disposition": "attachment; filename=merged.pdf"}
+        headers={"Content-Disposition": f"attachment; filename={first_name}-merged.pdf"}
     )
 
 
@@ -112,26 +137,29 @@ async def add_password(
         raise HTTPException(status_code=400, detail="Arquivo deve ser PDF")
     
     content = await file.read()
-    reader = PdfReader(io.BytesIO(content))
-    writer = PdfWriter()
     
-    for page in reader.pages:
-        writer.add_page(page)
-    
-    writer.encrypt(
-        user_password=user_password,
-        owner_password=owner_password or user_password,
-        algorithm="AES-256"
-    )
+    try:
+        pdf = pikepdf.open(io.BytesIO(content))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Erro ao abrir PDF: {str(e)}")
     
     output = io.BytesIO()
-    writer.write(output)
+    pdf.save(
+        output,
+        encryption=pikepdf.Encryption(
+            user=user_password,
+            owner=owner_password or user_password,
+            aes=True,
+            R=6
+        )
+    )
     output.seek(0)
+    pdf.close()
     
     return StreamingResponse(
         output,
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename=protected_{file.filename}"}
+        headers={"Content-Disposition": f"attachment; filename={get_output_filename(file.filename, 'protected')}"}
     )
 
 
@@ -145,26 +173,23 @@ async def remove_password(
         raise HTTPException(status_code=400, detail="Arquivo deve ser PDF")
     
     content = await file.read()
-    reader = PdfReader(io.BytesIO(content))
     
-    if reader.is_encrypted:
-        try:
-            reader.decrypt(password)
-        except Exception:
-            raise HTTPException(status_code=400, detail="Senha incorreta")
-    
-    writer = PdfWriter()
-    for page in reader.pages:
-        writer.add_page(page)
+    try:
+        pdf = pikepdf.open(io.BytesIO(content), password=password)
+    except pikepdf.PasswordError:
+        raise HTTPException(status_code=400, detail="Senha incorreta")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Erro ao abrir PDF: {str(e)}")
     
     output = io.BytesIO()
-    writer.write(output)
+    pdf.save(output)
     output.seek(0)
+    pdf.close()
     
     return StreamingResponse(
         output,
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename=unlocked_{file.filename}"}
+        headers={"Content-Disposition": f"attachment; filename={get_output_filename(file.filename, 'unlocked')}"}
     )
 
 
@@ -177,22 +202,30 @@ async def pdf_info(
         raise HTTPException(status_code=400, detail="Arquivo deve ser PDF")
     
     content = await file.read()
-    reader = PdfReader(io.BytesIO(content))
     
-    metadata = reader.metadata
+    try:
+        pdf = pikepdf.open(io.BytesIO(content))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Erro ao abrir PDF: {str(e)}")
     
-    return {
+    metadata = pdf.docinfo
+    
+    result = {
         "filename": file.filename,
-        "pages": len(reader.pages),
-        "encrypted": reader.is_encrypted,
+        "pages": len(pdf.pages),
+        "encrypted": pdf.is_encrypted,
+        "pdf_version": str(pdf.pdf_version),
         "metadata": {
-            "title": metadata.title if metadata else None,
-            "author": metadata.author if metadata else None,
-            "subject": metadata.subject if metadata else None,
-            "creator": metadata.creator if metadata else None,
-            "producer": metadata.producer if metadata else None,
+            "title": str(metadata.get("/Title", "")) if metadata else None,
+            "author": str(metadata.get("/Author", "")) if metadata else None,
+            "subject": str(metadata.get("/Subject", "")) if metadata else None,
+            "creator": str(metadata.get("/Creator", "")) if metadata else None,
+            "producer": str(metadata.get("/Producer", "")) if metadata else None,
         }
     }
+    
+    pdf.close()
+    return result
 
 
 def parse_page_ranges(pages: str, total_pages: int) -> List[int]:
