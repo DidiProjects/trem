@@ -4,7 +4,7 @@ from functools import lru_cache
 
 class Settings:
     API_KEY: str = os.getenv("API_KEY", "your-secret-api-key")
-    API_URL: str = os.getenv("API_URL", "http://localhost:8000")
+    API_URL: str = os.getenv("API_URL", "http://localhost:3002")
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "/tmp/uploads")
     MAX_FILE_SIZE: int = int(os.getenv("MAX_FILE_SIZE", 50 * 1024 * 1024))
 

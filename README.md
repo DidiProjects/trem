@@ -109,7 +109,7 @@ file: arquivo.pdf
 ## Exemplo de Uso com cURL
 
 ```bash
-curl -X POST "http://localhost:8000/pdf/split" \
+curl -X POST "http://localhost:3002/pdf/split" \
   -H "X-API-Key: sua-chave-secreta-aqui" \
   -F "file=@documento.pdf" \
   -F "pages=1-3" \
@@ -118,4 +118,4 @@ curl -X POST "http://localhost:8000/pdf/split" \
 
 ## Documentação Interativa
 
-Acesse a documentação Swagger em: `http://localhost:8000/docs`
+Acesse a documentação Swagger em: `http://localhost:3002/docs`
