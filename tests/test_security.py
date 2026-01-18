@@ -102,22 +102,22 @@ class TestGetFileHash:
 
 
 class TestMaliciousFileUpload:
-    """Testes para prevenir uploads maliciosos"""
+    """Tests to prevent malicious uploads"""
     
     def test_fake_pdf_extension_with_exe_content(self):
-        # Arquivo .pdf mas com conteúdo de executável
-        exe_magic = b"MZ"  # Magic bytes de .exe
+        # .pdf file but with executable content
+        exe_magic = b"MZ"  # .exe magic bytes
         content = exe_magic + b"\x00" * 100
         assert validate_file_type(content, "pdf") == False
     
     def test_fake_pdf_extension_with_zip_content(self):
-        # Arquivo .pdf mas com conteúdo de ZIP (possível zip bomb)
+        # .pdf file but with ZIP content (possible zip bomb)
         zip_magic = b"PK\x03\x04"
         content = zip_magic + b"\x00" * 100
         assert validate_file_type(content, "pdf") == False
     
     def test_polyglot_file_detection(self):
-        # Arquivo que poderia ser interpretado como múltiplos tipos
+        # File that could be interpreted as multiple types
         content = b"%PDF-1.4 but also <script>alert('xss')</script>"
-        # Deve passar como PDF válido (magic bytes corretos)
+        # Should pass as valid PDF (correct magic bytes)
         assert validate_file_type(content, "pdf") == True

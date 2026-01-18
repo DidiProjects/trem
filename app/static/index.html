@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +10,7 @@
     <div class="container">
         <header>
             <h1>API Tools</h1>
-            <p>Interface para manipulação de arquivos</p>
+            <p>Interface for file manipulation</p>
             <div class="api-url-display">
                 <span class="label">Base URL:</span>
                 <code id="baseUrlDisplay"></code>
@@ -20,14 +20,14 @@
         <div class="api-key-section">
             <label for="apiKey">API Key</label>
             <div class="input-group">
-                <input type="password" id="apiKey" placeholder="Digite sua API Key">
+                <input type="password" id="apiKey" placeholder="Enter your API Key">
                 <button onclick="toggleApiKeyVisibility()" class="btn-icon">👁</button>
             </div>
         </div>
 
         <div class="main-tabs">
             <button class="main-tab active" data-section="pdf">PDF</button>
-            <button class="main-tab" data-section="outros">Outros</button>
+            <button class="main-tab" data-section="outros">Others</button>
         </div>
 
         <div class="section-content active" id="section-pdf">
@@ -37,7 +37,7 @@
                         <div class="endpoint-info">
                             <span class="method post">POST</span>
                             <span class="path">/pdf/split</span>
-                            <span class="description">Extrair páginas específicas do PDF</span>
+                            <span class="description">Extract specific pages from PDF</span>
                         </div>
                         <span class="chevron">▼</span>
                     </div>
@@ -46,33 +46,33 @@
                             <div class="detail-section">
                                 <h4>Parameters</h4>
                                 <table class="params-table">
-                                    <tr><th>Nome</th><th>Tipo</th><th>Descrição</th></tr>
-                                    <tr><td>file</td><td>file</td><td>Arquivo PDF</td></tr>
-                                    <tr><td>pages</td><td>string</td><td>Páginas a extrair (ex: 1-3,5,7-10)</td></tr>
+                                    <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+                                    <tr><td>file</td><td>file</td><td>PDF file</td></tr>
+                                    <tr><td>pages</td><td>string</td><td>Pages to extract (e.g., 1-3,5,7-10)</td></tr>
                                 </table>
                             </div>
                             <div class="detail-section">
                                 <h4>Headers</h4>
-                                <pre class="code-block">X-API-Key: sua-api-key</pre>
+                                <pre class="code-block">X-API-Key: your-api-key</pre>
                             </div>
                             <div class="detail-section">
                                 <h4>cURL Example</h4>
                                 <pre class="code-block curl-example" data-endpoint="/pdf/split">curl -X POST "<span class="base-url"></span>/pdf/split" \
-  -H "X-API-Key: sua-api-key" \
-  -F "file=@documento.pdf" \
+  -H "X-API-Key: your-api-key" \
+  -F "file=@document.pdf" \
   -F "pages=1-3"</pre>
                             </div>
                         </div>
                         <form id="splitForm" class="api-form">
                             <div class="form-group">
-                                <label for="splitFile">Arquivo PDF</label>
+                                <label for="splitFile">PDF File</label>
                                 <input type="file" id="splitFile" accept=".pdf" required>
                             </div>
                             <div class="form-group">
-                                <label for="splitPages">Páginas</label>
-                                <input type="text" id="splitPages" placeholder="Ex: 1-3,5,7-10" required>
+                                <label for="splitPages">Pages</label>
+                                <input type="text" id="splitPages" placeholder="E.g., 1-3,5,7-10" required>
                             </div>
-                            <button type="submit" class="btn-primary">Executar</button>
+                            <button type="submit" class="btn-primary">Execute</button>
                         </form>
                     </div>
                 </div>
@@ -82,7 +82,7 @@
                         <div class="endpoint-info">
                             <span class="method post">POST</span>
                             <span class="path">/pdf/extract-pages</span>
-                            <span class="description">Separar todas as páginas em arquivos individuais</span>
+                            <span class="description">Separate all pages into individual files</span>
                         </div>
                         <span class="chevron">▼</span>
                     </div>
@@ -91,28 +91,28 @@
                             <div class="detail-section">
                                 <h4>Parameters</h4>
                                 <table class="params-table">
-                                    <tr><th>Nome</th><th>Tipo</th><th>Descrição</th></tr>
-                                    <tr><td>file</td><td>file</td><td>Arquivo PDF</td></tr>
+                                    <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+                                    <tr><td>file</td><td>file</td><td>PDF file</td></tr>
                                 </table>
                             </div>
                             <div class="detail-section">
                                 <h4>Response</h4>
-                                <pre class="code-block">application/zip (arquivo ZIP com todas as páginas)</pre>
+                                <pre class="code-block">application/zip (ZIP file with all pages)</pre>
                             </div>
                             <div class="detail-section">
                                 <h4>cURL Example</h4>
                                 <pre class="code-block curl-example">curl -X POST "<span class="base-url"></span>/pdf/extract-pages" \
-  -H "X-API-Key: sua-api-key" \
-  -F "file=@documento.pdf" \
-  --output paginas.zip</pre>
+  -H "X-API-Key: your-api-key" \
+  -F "file=@document.pdf" \
+  --output pages.zip</pre>
                             </div>
                         </div>
                         <form id="extractForm" class="api-form">
                             <div class="form-group">
-                                <label for="extractFile">Arquivo PDF</label>
+                                <label for="extractFile">PDF File</label>
                                 <input type="file" id="extractFile" accept=".pdf" required>
                             </div>
-                            <button type="submit" class="btn-primary">Executar</button>
+                            <button type="submit" class="btn-primary">Execute</button>
                         </form>
                     </div>
                 </div>
@@ -122,7 +122,7 @@
                         <div class="endpoint-info">
                             <span class="method post">POST</span>
                             <span class="path">/pdf/merge</span>
-                            <span class="description">Juntar múltiplos PDFs em um único arquivo</span>
+                            <span class="description">Merge multiple PDFs into a single file</span>
                         </div>
                         <span class="chevron">▼</span>
                     </div>
@@ -131,14 +131,14 @@
                             <div class="detail-section">
                                 <h4>Parameters</h4>
                                 <table class="params-table">
-                                    <tr><th>Nome</th><th>Tipo</th><th>Descrição</th></tr>
-                                    <tr><td>files</td><td>file[]</td><td>2 ou mais arquivos PDF</td></tr>
+                                    <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+                                    <tr><td>files</td><td>file[]</td><td>2 or more PDF files</td></tr>
                                 </table>
                             </div>
                             <div class="detail-section">
                                 <h4>cURL Example</h4>
                                 <pre class="code-block curl-example">curl -X POST "<span class="base-url"></span>/pdf/merge" \
-  -H "X-API-Key: sua-api-key" \
+  -H "X-API-Key: your-api-key" \
   -F "files=@doc1.pdf" \
   -F "files=@doc2.pdf" \
   --output merged.pdf</pre>
@@ -146,11 +146,11 @@
                         </div>
                         <form id="mergeForm" class="api-form">
                             <div class="form-group">
-                                <label for="mergeFiles">Arquivos PDF</label>
+                                <label for="mergeFiles">PDF Files</label>
                                 <input type="file" id="mergeFiles" accept=".pdf" multiple required>
-                                <small>Selecione 2 ou mais arquivos</small>
+                                <small>Select 2 or more files</small>
                             </div>
-                            <button type="submit" class="btn-primary">Executar</button>
+                            <button type="submit" class="btn-primary">Execute</button>
                         </form>
                     </div>
                 </div>
@@ -160,7 +160,7 @@
                         <div class="endpoint-info">
                             <span class="method post">POST</span>
                             <span class="path">/pdf/add-password</span>
-                            <span class="description">Adicionar senha de proteção ao PDF</span>
+                            <span class="description">Add password protection to PDF</span>
                         </div>
                         <span class="chevron">▼</span>
                     </div>
@@ -169,35 +169,35 @@
                             <div class="detail-section">
                                 <h4>Parameters</h4>
                                 <table class="params-table">
-                                    <tr><th>Nome</th><th>Tipo</th><th>Descrição</th></tr>
-                                    <tr><td>file</td><td>file</td><td>Arquivo PDF</td></tr>
-                                    <tr><td>user_password</td><td>string</td><td>Senha para abrir o PDF</td></tr>
-                                    <tr><td>owner_password</td><td>string</td><td>Senha do proprietário (opcional)</td></tr>
+                                    <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+                                    <tr><td>file</td><td>file</td><td>PDF file</td></tr>
+                                    <tr><td>user_password</td><td>string</td><td>Password to open the PDF</td></tr>
+                                    <tr><td>owner_password</td><td>string</td><td>Owner password (optional)</td></tr>
                                 </table>
                             </div>
                             <div class="detail-section">
                                 <h4>cURL Example</h4>
                                 <pre class="code-block curl-example">curl -X POST "<span class="base-url"></span>/pdf/add-password" \
-  -H "X-API-Key: sua-api-key" \
-  -F "file=@documento.pdf" \
-  -F "user_password=minhasenha" \
-  --output protegido.pdf</pre>
+  -H "X-API-Key: your-api-key" \
+  -F "file=@document.pdf" \
+  -F "user_password=mypassword" \
+  --output protected.pdf</pre>
                             </div>
                         </div>
                         <form id="addPasswordForm" class="api-form">
                             <div class="form-group">
-                                <label for="addPwdFile">Arquivo PDF</label>
+                                <label for="addPwdFile">PDF File</label>
                                 <input type="file" id="addPwdFile" accept=".pdf" required>
                             </div>
                             <div class="form-group">
-                                <label for="userPassword">Senha do Usuário</label>
-                                <input type="password" id="userPassword" placeholder="Senha para abrir o PDF" required>
+                                <label for="userPassword">User Password</label>
+                                <input type="password" id="userPassword" placeholder="Password to open the PDF" required>
                             </div>
                             <div class="form-group">
-                                <label for="ownerPassword">Senha do Proprietário (opcional)</label>
-                                <input type="password" id="ownerPassword" placeholder="Senha para edição">
+                                <label for="ownerPassword">Owner Password (optional)</label>
+                                <input type="password" id="ownerPassword" placeholder="Password for editing">
                             </div>
-                            <button type="submit" class="btn-primary">Executar</button>
+                            <button type="submit" class="btn-primary">Execute</button>
                         </form>
                     </div>
                 </div>
@@ -207,7 +207,7 @@
                         <div class="endpoint-info">
                             <span class="method post">POST</span>
                             <span class="path">/pdf/remove-password</span>
-                            <span class="description">Remover senha de um PDF protegido</span>
+                            <span class="description">Remove password from a protected PDF</span>
                         </div>
                         <span class="chevron">▼</span>
                     </div>
@@ -216,30 +216,30 @@
                             <div class="detail-section">
                                 <h4>Parameters</h4>
                                 <table class="params-table">
-                                    <tr><th>Nome</th><th>Tipo</th><th>Descrição</th></tr>
-                                    <tr><td>file</td><td>file</td><td>Arquivo PDF protegido</td></tr>
-                                    <tr><td>password</td><td>string</td><td>Senha atual do PDF</td></tr>
+                                    <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+                                    <tr><td>file</td><td>file</td><td>Protected PDF file</td></tr>
+                                    <tr><td>password</td><td>string</td><td>Current PDF password</td></tr>
                                 </table>
                             </div>
                             <div class="detail-section">
                                 <h4>cURL Example</h4>
                                 <pre class="code-block curl-example">curl -X POST "<span class="base-url"></span>/pdf/remove-password" \
-  -H "X-API-Key: sua-api-key" \
-  -F "file=@protegido.pdf" \
-  -F "password=minhasenha" \
-  --output desbloqueado.pdf</pre>
+  -H "X-API-Key: your-api-key" \
+  -F "file=@protected.pdf" \
+  -F "password=mypassword" \
+  --output unlocked.pdf</pre>
                             </div>
                         </div>
                         <form id="removePasswordForm" class="api-form">
                             <div class="form-group">
-                                <label for="removePwdFile">Arquivo PDF</label>
+                                <label for="removePwdFile">PDF File</label>
                                 <input type="file" id="removePwdFile" accept=".pdf" required>
                             </div>
                             <div class="form-group">
-                                <label for="currentPassword">Senha Atual</label>
-                                <input type="password" id="currentPassword" placeholder="Senha do PDF" required>
+                                <label for="currentPassword">Current Password</label>
+                                <input type="password" id="currentPassword" placeholder="PDF password" required>
                             </div>
-                            <button type="submit" class="btn-primary">Executar</button>
+                            <button type="submit" class="btn-primary">Execute</button>
                         </form>
                     </div>
                 </div>
@@ -249,7 +249,7 @@
                         <div class="endpoint-info">
                             <span class="method post">POST</span>
                             <span class="path">/pdf/info</span>
-                            <span class="description">Obter informações e metadados do PDF</span>
+                            <span class="description">Get PDF information and metadata</span>
                         </div>
                         <span class="chevron">▼</span>
                     </div>
@@ -258,20 +258,20 @@
                             <div class="detail-section">
                                 <h4>Parameters</h4>
                                 <table class="params-table">
-                                    <tr><th>Nome</th><th>Tipo</th><th>Descrição</th></tr>
-                                    <tr><td>file</td><td>file</td><td>Arquivo PDF</td></tr>
+                                    <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+                                    <tr><td>file</td><td>file</td><td>PDF file</td></tr>
                                 </table>
                             </div>
                             <div class="detail-section">
                                 <h4>Response Example</h4>
                                 <pre class="code-block">{
-  "filename": "documento.pdf",
+  "filename": "document.pdf",
   "pages": 10,
   "encrypted": false,
   "pdf_version": "1.7",
   "metadata": {
-    "title": "Meu Documento",
-    "author": "Autor",
+    "title": "My Document",
+    "author": "Author",
     "subject": null,
     "creator": "App",
     "producer": "pikepdf"
@@ -281,16 +281,16 @@
                             <div class="detail-section">
                                 <h4>cURL Example</h4>
                                 <pre class="code-block curl-example">curl -X POST "<span class="base-url"></span>/pdf/info" \
-  -H "X-API-Key: sua-api-key" \
-  -F "file=@documento.pdf"</pre>
+  -H "X-API-Key: your-api-key" \
+  -F "file=@document.pdf"</pre>
                             </div>
                         </div>
                         <form id="infoForm" class="api-form">
                             <div class="form-group">
-                                <label for="infoFile">Arquivo PDF</label>
+                                <label for="infoFile">PDF File</label>
                                 <input type="file" id="infoFile" accept=".pdf" required>
                             </div>
-                            <button type="submit" class="btn-primary">Executar</button>
+                            <button type="submit" class="btn-primary">Execute</button>
                         </form>
                         <div id="infoResult" class="result-box hidden"></div>
                     </div>
@@ -301,7 +301,7 @@
                         <div class="endpoint-info">
                             <span class="method post">POST</span>
                             <span class="path">/pdf/convert-to-image</span>
-                            <span class="description">Converter PDF para imagens (PNG, JPEG, TIFF)</span>
+                            <span class="description">Convert PDF to images (PNG, JPEG, TIFF)</span>
                         </div>
                         <span class="chevron">▼</span>
                     </div>
@@ -310,34 +310,34 @@
                             <div class="detail-section">
                                 <h4>Parameters</h4>
                                 <table class="params-table">
-                                    <tr><th>Nome</th><th>Tipo</th><th>Descrição</th></tr>
-                                    <tr><td>file</td><td>file</td><td>Arquivo PDF</td></tr>
-                                    <tr><td>format</td><td>string</td><td>Formato: png, jpeg, tiff (padrão: png)</td></tr>
-                                    <tr><td>dpi</td><td>integer</td><td>Resolução: 72-600 (padrão: 150)</td></tr>
-                                    <tr><td>pages</td><td>string</td><td>Páginas a converter (opcional, ex: 1-3,5)</td></tr>
+                                    <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+                                    <tr><td>file</td><td>file</td><td>PDF file</td></tr>
+                                    <tr><td>format</td><td>string</td><td>Format: png, jpeg, tiff (default: png)</td></tr>
+                                    <tr><td>dpi</td><td>integer</td><td>Resolution: 72-600 (default: 150)</td></tr>
+                                    <tr><td>pages</td><td>string</td><td>Pages to convert (optional, e.g., 1-3,5)</td></tr>
                                 </table>
                             </div>
                             <div class="detail-section">
                                 <h4>Response</h4>
-                                <pre class="code-block">Uma página: imagem direta | Múltiplas: ZIP com imagens</pre>
+                                <pre class="code-block">Single page: direct image | Multiple: ZIP with images</pre>
                             </div>
                             <div class="detail-section">
                                 <h4>cURL Example</h4>
                                 <pre class="code-block curl-example">curl -X POST "<span class="base-url"></span>/pdf/convert-to-image" \
-  -H "X-API-Key: sua-api-key" \
-  -F "file=@documento.pdf" \
+  -H "X-API-Key: your-api-key" \
+  -F "file=@document.pdf" \
   -F "format=png" \
   -F "dpi=150" \
-  --output imagens.zip</pre>
+  --output images.zip</pre>
                             </div>
                         </div>
                         <form id="convertImageForm" class="api-form">
                             <div class="form-group">
-                                <label for="convertImageFile">Arquivo PDF</label>
+                                <label for="convertImageFile">PDF File</label>
                                 <input type="file" id="convertImageFile" accept=".pdf" required>
                             </div>
                             <div class="form-group">
-                                <label for="convertImageFormat">Formato</label>
+                                <label for="convertImageFormat">Format</label>
                                 <select id="convertImageFormat">
                                     <option value="png">PNG</option>
                                     <option value="jpeg">JPEG</option>
@@ -345,14 +345,14 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="convertImageDpi">DPI (Resolução)</label>
+                                <label for="convertImageDpi">DPI (Resolution)</label>
                                 <input type="number" id="convertImageDpi" value="150" min="72" max="600">
                             </div>
                             <div class="form-group">
-                                <label for="convertImagePages">Páginas (opcional)</label>
-                                <input type="text" id="convertImagePages" placeholder="Ex: 1-3,5 (vazio = todas)">
+                                <label for="convertImagePages">Pages (optional)</label>
+                                <input type="text" id="convertImagePages" placeholder="E.g., 1-3,5 (empty = all)">
                             </div>
-                            <button type="submit" class="btn-primary">Executar</button>
+                            <button type="submit" class="btn-primary">Execute</button>
                         </form>
                     </div>
                 </div>
@@ -362,7 +362,7 @@
                         <div class="endpoint-info">
                             <span class="method post">POST</span>
                             <span class="path">/pdf/convert-to-ofx</span>
-                            <span class="description">Converter extrato bancário PDF para OFX</span>
+                            <span class="description">Convert bank statement PDF to OFX</span>
                         </div>
                         <span class="chevron">▼</span>
                     </div>
@@ -371,51 +371,51 @@
                             <div class="detail-section">
                                 <h4>Parameters</h4>
                                 <table class="params-table">
-                                    <tr><th>Nome</th><th>Tipo</th><th>Descrição</th></tr>
-                                    <tr><td>file</td><td>file</td><td>Extrato bancário em PDF</td></tr>
-                                    <tr><td>bank_id</td><td>string</td><td>ID do banco (4 dígitos)</td></tr>
-                                    <tr><td>account_id</td><td>string</td><td>Número da conta</td></tr>
-                                    <tr><td>account_type</td><td>string</td><td>CHECKING, SAVINGS ou CREDITCARD</td></tr>
+                                    <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+                                    <tr><td>file</td><td>file</td><td>Bank statement in PDF</td></tr>
+                                    <tr><td>bank_id</td><td>string</td><td>Bank ID (4 digits)</td></tr>
+                                    <tr><td>account_id</td><td>string</td><td>Account number</td></tr>
+                                    <tr><td>account_type</td><td>string</td><td>CHECKING, SAVINGS or CREDITCARD</td></tr>
                                 </table>
                             </div>
                             <div class="detail-section">
-                                <h4>Nota</h4>
-                                <pre class="code-block">Extrai transações de extratos brasileiros (DD/MM/YYYY).
-Para formatos específicos, ajustes podem ser necessários.</pre>
+                                <h4>Note</h4>
+                                <pre class="code-block">Extracts transactions from Brazilian statements (DD/MM/YYYY).
+For specific formats, adjustments may be necessary.</pre>
                             </div>
                             <div class="detail-section">
                                 <h4>cURL Example</h4>
                                 <pre class="code-block curl-example">curl -X POST "<span class="base-url"></span>/pdf/convert-to-ofx" \
-  -H "X-API-Key: sua-api-key" \
-  -F "file=@extrato.pdf" \
+  -H "X-API-Key: your-api-key" \
+  -F "file=@statement.pdf" \
   -F "bank_id=0001" \
   -F "account_id=12345" \
   -F "account_type=CHECKING" \
-  --output extrato.ofx</pre>
+  --output statement.ofx</pre>
                             </div>
                         </div>
                         <form id="convertOfxForm" class="api-form">
                             <div class="form-group">
-                                <label for="convertOfxFile">Extrato PDF</label>
+                                <label for="convertOfxFile">Statement PDF</label>
                                 <input type="file" id="convertOfxFile" accept=".pdf" required>
                             </div>
                             <div class="form-group">
-                                <label for="convertOfxBankId">ID do Banco</label>
-                                <input type="text" id="convertOfxBankId" value="0000" placeholder="Ex: 0001">
+                                <label for="convertOfxBankId">Bank ID</label>
+                                <input type="text" id="convertOfxBankId" value="0000" placeholder="E.g., 0001">
                             </div>
                             <div class="form-group">
-                                <label for="convertOfxAccountId">Número da Conta</label>
-                                <input type="text" id="convertOfxAccountId" value="0000000000" placeholder="Ex: 12345-6">
+                                <label for="convertOfxAccountId">Account Number</label>
+                                <input type="text" id="convertOfxAccountId" value="0000000000" placeholder="E.g., 12345-6">
                             </div>
                             <div class="form-group">
-                                <label for="convertOfxAccountType">Tipo de Conta</label>
+                                <label for="convertOfxAccountType">Account Type</label>
                                 <select id="convertOfxAccountType">
-                                    <option value="CHECKING">Conta Corrente (CHECKING)</option>
-                                    <option value="SAVINGS">Poupança (SAVINGS)</option>
-                                    <option value="CREDITCARD">Cartão de Crédito (CREDITCARD)</option>
+                                    <option value="CHECKING">Checking Account (CHECKING)</option>
+                                    <option value="SAVINGS">Savings (SAVINGS)</option>
+                                    <option value="CREDITCARD">Credit Card (CREDITCARD)</option>
                                 </select>
                             </div>
-                            <button type="submit" class="btn-primary">Executar</button>
+                            <button type="submit" class="btn-primary">Execute</button>
                         </form>
                     </div>
                 </div>
@@ -425,14 +425,14 @@ Para formatos específicos, ajustes podem ser necessários.</pre>
         <div class="section-content" id="section-outros">
             <div class="empty-state">
                 <span class="empty-icon">🚧</span>
-                <h3>Em breve</h3>
-                <p>Novas funcionalidades serão adicionadas aqui.</p>
+                <h3>Coming soon</h3>
+                <p>New features will be added here.</p>
             </div>
         </div>
 
         <div id="loading" class="loading hidden">
             <div class="spinner"></div>
-            <p>Processando...</p>
+            <p>Processing...</p>
         </div>
 
         <div id="toast" class="toast hidden"></div>

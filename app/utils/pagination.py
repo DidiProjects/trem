@@ -9,11 +9,11 @@ def parse_page_ranges(pages: str, total_pages: int) -> List[int]:
         if "-" in part:
             start, end = map(lambda x: int(x.strip()), part.split("-"))
             if start < 1 or end > total_pages or start > end:
-                raise HTTPException(status_code=400, detail=f"Intervalo inválido: {part}")
+                raise HTTPException(status_code=400, detail=f"Invalid range: {part}")
             result.extend(range(start, end + 1))
         else:
             page = int(part)
             if page < 1 or page > total_pages:
-                raise HTTPException(status_code=400, detail=f"Página inválida: {page}")
+                raise HTTPException(status_code=400, detail=f"Invalid page: {page}")
             result.append(page)
     return sorted(set(result))

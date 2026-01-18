@@ -59,7 +59,7 @@ function toggleApiKeyVisibility() {
 function getApiKey() {
     const apiKey = document.getElementById('apiKey').value;
     if (!apiKey) {
-        showToast('Por favor, informe a API Key', 'error');
+        showToast('Please enter the API Key', 'error');
         return null;
     }
     return apiKey;
@@ -127,7 +127,7 @@ async function makeRequest(endpoint, formData) {
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.detail || 'Erro na requisição');
+            throw new Error(error.detail || 'Request error');
         }
 
         return response;
@@ -151,7 +151,7 @@ function setupFormHandlers() {
             const blob = await response.blob();
             hideLoading();
             downloadBlob(blob, filename);
-            showToast('PDF dividido com sucesso!');
+            showToast('PDF split successfully!');
         }
     });
 
@@ -166,7 +166,7 @@ function setupFormHandlers() {
             const blob = await response.blob();
             hideLoading();
             downloadBlob(blob, filename);
-            showToast('Páginas extraídas com sucesso!');
+            showToast('Pages extracted successfully!');
         }
     });
 
@@ -175,7 +175,7 @@ function setupFormHandlers() {
         const files = document.getElementById('mergeFiles').files;
         
         if (files.length < 2) {
-            showToast('Selecione pelo menos 2 arquivos', 'error');
+            showToast('Select at least 2 files', 'error');
             return;
         }
 
@@ -190,7 +190,7 @@ function setupFormHandlers() {
             const blob = await response.blob();
             hideLoading();
             downloadBlob(blob, filename);
-            showToast('PDFs mesclados com sucesso!');
+            showToast('PDFs merged successfully!');
         }
     });
 
@@ -211,7 +211,7 @@ function setupFormHandlers() {
             const blob = await response.blob();
             hideLoading();
             downloadBlob(blob, filename);
-            showToast('Senha adicionada com sucesso!');
+            showToast('Password added successfully!');
         }
     });
 
@@ -227,7 +227,7 @@ function setupFormHandlers() {
             const blob = await response.blob();
             hideLoading();
             downloadBlob(blob, filename);
-            showToast('Senha removida com sucesso!');
+            showToast('Password removed successfully!');
         }
     });
 
@@ -243,7 +243,7 @@ function setupFormHandlers() {
             const resultBox = document.getElementById('infoResult');
             resultBox.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
             resultBox.classList.remove('hidden');
-            showToast('Informações obtidas com sucesso!');
+            showToast('Information retrieved successfully!');
         }
     });
 
@@ -275,7 +275,7 @@ function setupFormHandlers() {
             }
             
             downloadBlob(blob, filename);
-            showToast('PDF convertido para imagem com sucesso!');
+            showToast('PDF converted to image successfully!');
         }
     });
 
@@ -289,11 +289,11 @@ function setupFormHandlers() {
 
         const response = await makeRequest('/pdf/convert-to-ofx', formData);
         if (response) {
-            const filename = getFilenameFromResponse(response, 'extrato.ofx');
+            const filename = getFilenameFromResponse(response, 'statement.ofx');
             const blob = await response.blob();
             hideLoading();
             downloadBlob(blob, filename);
-            showToast('PDF convertido para OFX com sucesso!');
+            showToast('PDF converted to OFX successfully!');
         }
     });
 }

@@ -3,13 +3,13 @@ import hashlib
 from typing import Optional
 from fastapi import UploadFile, HTTPException
 
-# Magic bytes para identificar tipos de arquivo
+# Magic bytes to identify file types
 MAGIC_BYTES = {
     "pdf": [b"%PDF"],
     "zip": [b"PK\x03\x04", b"PK\x05\x06"],
 }
 
-# Tamanhos máximos por tipo (em bytes)
+# Maximum sizes by type (in bytes)
 MAX_SIZES = {
     "pdf": 50 * 1024 * 1024,  # 50MB
     "zip": 100 * 1024 * 1024,  # 100MB
@@ -17,7 +17,7 @@ MAX_SIZES = {
 
 
 def validate_file_type(content: bytes, expected_type: str) -> bool:
-    """Valida o tipo real do arquivo pelos magic bytes"""
+    """Validate the actual file type by magic bytes"""
     if expected_type not in MAGIC_BYTES:
         return False
     
@@ -28,61 +28,61 @@ def validate_file_type(content: bytes, expected_type: str) -> bool:
 
 
 def validate_file_size(content: bytes, file_type: str) -> bool:
-    """Valida se o arquivo não excede o tamanho máximo"""
+    """Validate if file does not exceed maximum size"""
     max_size = MAX_SIZES.get(file_type, 10 * 1024 * 1024)
     return len(content) <= max_size
 
 
 def get_file_hash(content: bytes) -> str:
-    """Gera hash SHA-256 do arquivo para logging/auditoria"""
+    """Generate SHA-256 hash of file for logging/auditing"""
     return hashlib.sha256(content).hexdigest()[:16]
 
 
 async def validate_pdf_upload(file: UploadFile, max_size_mb: int = 50) -> bytes:
     """
-    Validação completa de upload de PDF:
-    1. Verifica extensão
-    2. Verifica tamanho
-    3. Verifica magic bytes (conteúdo real)
+    Complete PDF upload validation:
+    1. Verify extension
+    2. Verify size
+    3. Verify magic bytes (actual content)
     """
-    # 1. Validar extensão
+    # 1. Validate extension
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
             status_code=400, 
-            detail="Arquivo deve ter extensão .pdf"
+            detail="File must have .pdf extension"
         )
     
-    # 2. Ler conteúdo
+    # 2. Read content
     content = await file.read()
     
-    # 3. Validar tamanho
+    # 3. Validate size
     max_size = max_size_mb * 1024 * 1024
     if len(content) > max_size:
         raise HTTPException(
             status_code=413,
-            detail=f"Arquivo excede o tamanho máximo de {max_size_mb}MB"
+            detail=f"File exceeds maximum size of {max_size_mb}MB"
         )
     
     if len(content) == 0:
         raise HTTPException(
             status_code=400,
-            detail="Arquivo está vazio"
+            detail="File is empty"
         )
     
-    # 4. Validar magic bytes (conteúdo real é PDF)
+    # 4. Validate magic bytes (actual content is PDF)
     if not validate_file_type(content, "pdf"):
         raise HTTPException(
             status_code=400,
-            detail="Arquivo não é um PDF válido"
+            detail="File is not a valid PDF"
         )
     
     return content
 
 
 def sanitize_filename(filename: str, max_length: int = 200) -> str:
-    """Remove caracteres perigosos do nome do arquivo"""
+    """Remove dangerous characters from filename"""
     if not filename:
-        return "documento"
+        return "document"
     
     # Remove path traversal
     filename = filename.replace("\\", "/").split("/")[-1]

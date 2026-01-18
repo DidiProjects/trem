@@ -127,7 +127,7 @@ class PdfService:
         pages: Optional[str]
     ) -> tuple[io.BytesIO, str, bool]:
         """
-        Retorna (buffer, extension, is_single_page)
+        Returns (buffer, extension, is_single_page)
         """
         pdf = fitz.open(stream=content, filetype="pdf")
         total_pages = len(pdf)

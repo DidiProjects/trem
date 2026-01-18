@@ -22,7 +22,7 @@ async def split_pdf(
     try:
         output, _ = PdfService.split(content, pages)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao processar PDF: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error processing PDF: {str(e)}")
     
     return StreamingResponse(
         output,
@@ -41,7 +41,7 @@ async def extract_pages(
     try:
         zip_buffer = PdfService.extract_pages(content)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao processar PDF: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error processing PDF: {str(e)}")
     
     output_name = sanitize_filename(file.filename).rsplit(".", 1)[0] + "-extracted.zip"
     return StreamingResponse(
@@ -57,10 +57,10 @@ async def merge_pdfs(
     api_key: str = Depends(verify_api_key)
 ):
     if len(files) < 2:
-        raise HTTPException(status_code=400, detail="Forneça pelo menos 2 arquivos PDF")
+        raise HTTPException(status_code=400, detail="Provide at least 2 PDF files")
     
     if len(files) > 20:
-        raise HTTPException(status_code=400, detail="Máximo de 20 arquivos por vez")
+        raise HTTPException(status_code=400, detail="Maximum of 20 files at a time")
     
     contents = []
     for file in files:
@@ -70,7 +70,7 @@ async def merge_pdfs(
     try:
         output = PdfService.merge(contents)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao processar PDF: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error processing PDF: {str(e)}")
     
     first_name = sanitize_filename(files[0].filename).rsplit(".", 1)[0]
     return StreamingResponse(
@@ -92,7 +92,7 @@ async def add_password(
     try:
         output = PdfService.add_password(content, user_password, owner_password)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao processar PDF: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error processing PDF: {str(e)}")
     
     return StreamingResponse(
         output,
@@ -112,9 +112,9 @@ async def remove_password(
     try:
         output = PdfService.remove_password(content, password)
     except pikepdf.PasswordError:
-        raise HTTPException(status_code=400, detail="Senha incorreta")
+        raise HTTPException(status_code=400, detail="Incorrect password")
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao processar PDF: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error processing PDF: {str(e)}")
     
     return StreamingResponse(
         output,
@@ -133,7 +133,7 @@ async def pdf_info(
     try:
         return PdfService.get_info(content, sanitize_filename(file.filename))
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao processar PDF: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error processing PDF: {str(e)}")
 
 
 @router.post("/convert-to-image")
@@ -145,14 +145,14 @@ async def convert_to_image(
     api_key: str = Depends(verify_api_key)
 ):
     if dpi < 72 or dpi > 600:
-        raise HTTPException(status_code=400, detail="DPI deve estar entre 72 e 600")
+        raise HTTPException(status_code=400, detail="DPI must be between 72 and 600")
     
     content = await validate_pdf_upload(file)
     
     try:
         buffer, ext, is_single, page_num, mime_type = PdfService.convert_to_image(content, format, dpi, pages)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao processar PDF: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error processing PDF: {str(e)}")
     
     base_name = sanitize_filename(file.filename).rsplit(".", 1)[0]
     if is_single:
@@ -180,12 +180,12 @@ async def convert_to_ofx(
     try:
         ofx_content = PdfService.convert_to_ofx(content, bank_id, account_id, account_type)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao processar PDF: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error processing PDF: {str(e)}")
     
     if not ofx_content:
         raise HTTPException(
             status_code=400, 
-            detail="Não foi possível extrair transações do PDF. Verifique se é um extrato bancário válido."
+            detail="Could not extract transactions from PDF. Please verify it is a valid bank statement."
         )
     
     output_name = sanitize_filename(file.filename).rsplit(".", 1)[0] + ".ofx"
@@ -206,7 +206,7 @@ async def extract_text(
     try:
         pages_text = PdfService.extract_text(content)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao processar PDF: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error processing PDF: {str(e)}")
     
     return {
         "filename": sanitize_filename(file.filename),

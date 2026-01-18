@@ -19,7 +19,7 @@ def api_key():
 
 @pytest.fixture
 def sample_pdf_bytes():
-    """Cria um PDF simples em memória para testes"""
+    """Creates a simple PDF in memory for tests"""
     pdf = pikepdf.new()
     pdf.add_blank_page(page_size=(612, 792))
     pdf.add_blank_page(page_size=(612, 792))
@@ -35,11 +35,11 @@ def sample_pdf_bytes():
 
 @pytest.fixture
 def sample_pdf_with_text():
-    """Cria um PDF com texto para testes de extração"""
+    """Creates a PDF with text for extraction tests"""
     doc = fitz.open()
     page = doc.new_page()
-    page.insert_text((100, 100), "Texto de teste para extração")
-    page.insert_text((100, 120), "Segunda linha de texto")
+    page.insert_text((100, 100), "Test text for extraction")
+    page.insert_text((100, 120), "Second line of text")
     
     buffer = io.BytesIO()
     doc.save(buffer)
@@ -51,11 +51,11 @@ def sample_pdf_with_text():
 
 @pytest.fixture
 def sample_bank_statement_pdf():
-    """Cria um PDF simulando extrato bancário formato Zoop"""
+    """Creates a PDF simulating bank statement in Zoop format"""
     doc = fitz.open()
     page = doc.new_page()
     
-    # Simula formato Zoop (4 linhas por transação)
+    # Simulates Zoop format (4 lines per transaction)
     y = 100
     transactions = [
         ("15/01/2026", "PIX", "Pagamento João", "R$ 150,00"),
@@ -80,7 +80,7 @@ def sample_bank_statement_pdf():
 
 @pytest.fixture
 def protected_pdf_bytes():
-    """Cria um PDF protegido com senha"""
+    """Creates a password-protected PDF"""
     pdf = pikepdf.new()
     pdf.add_blank_page(page_size=(612, 792))
     
