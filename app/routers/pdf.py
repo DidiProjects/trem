@@ -4,6 +4,7 @@ import uuid
 import zipfile
 from datetime import datetime
 from typing import List, Literal, Optional
+from urllib.parse import quote
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 import pikepdf
@@ -11,6 +12,10 @@ import fitz
 from app.auth import verify_api_key
 
 router = APIRouter()
+
+
+def safe_filename(filename: str) -> str:
+    return quote(filename, safe='')
 
 
 def get_output_filename(original: str, operation: str) -> str:
@@ -296,7 +301,9 @@ async def convert_to_image(
         return StreamingResponse(
             io.BytesIO(img_bytes),
             media_type=config["mime"],
-            headers={"Content-Disposition": f"attachment; filename={output_name}"}
+            headers={
+                "Content-Disposition": f"attachment; filename*=UTF-8''{safe_filename(output_name)}"
+            }
         )
     
     # Múltiplas páginas: retorna ZIP
@@ -322,7 +329,9 @@ async def convert_to_image(
     return StreamingResponse(
         zip_buffer,
         media_type="application/zip",
-        headers={"Content-Disposition": f"attachment; filename={output_name}"}
+        headers={
+            "Content-Disposition": f"attachment; filename*=UTF-8''{safe_filename(output_name)}"
+        }
     )
 
 
@@ -363,7 +372,9 @@ async def convert_to_ofx(
     return StreamingResponse(
         io.BytesIO(ofx_content.encode("utf-8")),
         media_type="application/x-ofx",
-        headers={"Content-Disposition": f"attachment; filename={output_name}"}
+        headers={
+            "Content-Disposition": f"attachment; filename*=UTF-8''{safe_filename(output_name)}"
+        }
     )
 
 
