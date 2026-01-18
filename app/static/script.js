@@ -242,4 +242,54 @@ function setupFormHandlers() {
             showToast('Informações obtidas com sucesso!');
         }
     });
+
+    document.getElementById('convertImageForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('file', document.getElementById('convertImageFile').files[0]);
+        formData.append('format', document.getElementById('convertImageFormat').value);
+        formData.append('dpi', document.getElementById('convertImageDpi').value);
+        
+        const pages = document.getElementById('convertImagePages').value;
+        if (pages) {
+            formData.append('pages', pages);
+        }
+
+        const response = await makeRequest('/pdf/convert-to-image', formData);
+        if (response) {
+            const contentType = response.headers.get('Content-Type');
+            const blob = await response.blob();
+            hideLoading();
+            
+            let filename;
+            if (contentType.includes('zip')) {
+                filename = getFilenameFromResponse(response, 'images.zip');
+            } else {
+                const format = document.getElementById('convertImageFormat').value;
+                const ext = format === 'jpeg' ? 'jpg' : format;
+                filename = getFilenameFromResponse(response, `image.${ext}`);
+            }
+            
+            downloadBlob(blob, filename);
+            showToast('PDF convertido para imagem com sucesso!');
+        }
+    });
+
+    document.getElementById('convertOfxForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('file', document.getElementById('convertOfxFile').files[0]);
+        formData.append('bank_id', document.getElementById('convertOfxBankId').value);
+        formData.append('account_id', document.getElementById('convertOfxAccountId').value);
+        formData.append('account_type', document.getElementById('convertOfxAccountType').value);
+
+        const response = await makeRequest('/pdf/convert-to-ofx', formData);
+        if (response) {
+            const filename = getFilenameFromResponse(response, 'extrato.ofx');
+            const blob = await response.blob();
+            hideLoading();
+            downloadBlob(blob, filename);
+            showToast('PDF convertido para OFX com sucesso!');
+        }
+    });
 }

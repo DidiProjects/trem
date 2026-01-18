@@ -10,6 +10,7 @@ LABEL version=1.0
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    libmupdf-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
