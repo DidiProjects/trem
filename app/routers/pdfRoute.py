@@ -3,9 +3,10 @@ from typing import List, Literal, Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 import pikepdf
-from app.auth import verify_api_key
+from app.auth_secure import verify_api_key
 from app.services import PdfService
 from app.utils import safe_filename, get_output_filename
+from app.utils.security import validate_pdf_upload, sanitize_filename
 
 router = APIRouter()
 
@@ -16,10 +17,7 @@ async def split_pdf(
     pages: str = Form(...),
     api_key: str = Depends(verify_api_key)
 ):
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Arquivo deve ser PDF")
-    
-    content = await file.read()
+    content = await validate_pdf_upload(file)
     
     try:
         output, _ = PdfService.split(content, pages)
@@ -29,7 +27,7 @@ async def split_pdf(
     return StreamingResponse(
         output,
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={safe_filename(get_output_filename(file.filename, 'split'))}"}
+        headers={"Content-Disposition": f"attachment; filename={safe_filename(get_output_filename(sanitize_filename(file.filename), 'split'))}"}
     )
 
 
@@ -38,17 +36,14 @@ async def extract_pages(
     file: UploadFile = File(...),
     api_key: str = Depends(verify_api_key)
 ):
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Arquivo deve ser PDF")
-    
-    content = await file.read()
+    content = await validate_pdf_upload(file)
     
     try:
         zip_buffer = PdfService.extract_pages(content)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erro ao processar PDF: {str(e)}")
     
-    output_name = file.filename.rsplit(".", 1)[0] + "-extracted.zip"
+    output_name = sanitize_filename(file.filename).rsplit(".", 1)[0] + "-extracted.zip"
     return StreamingResponse(
         zip_buffer,
         media_type="application/zip",
@@ -64,19 +59,20 @@ async def merge_pdfs(
     if len(files) < 2:
         raise HTTPException(status_code=400, detail="Forneça pelo menos 2 arquivos PDF")
     
+    if len(files) > 20:
+        raise HTTPException(status_code=400, detail="Máximo de 20 arquivos por vez")
+    
     contents = []
     for file in files:
-        if not file.filename.lower().endswith(".pdf"):
-            raise HTTPException(status_code=400, detail=f"Arquivo {file.filename} não é PDF")
-        content = await file.read()
-        contents.append((file.filename, content))
+        content = await validate_pdf_upload(file)
+        contents.append((sanitize_filename(file.filename), content))
     
     try:
         output = PdfService.merge(contents)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erro ao processar PDF: {str(e)}")
     
-    first_name = files[0].filename.rsplit(".", 1)[0]
+    first_name = sanitize_filename(files[0].filename).rsplit(".", 1)[0]
     return StreamingResponse(
         output,
         media_type="application/pdf",
@@ -91,10 +87,7 @@ async def add_password(
     owner_password: Optional[str] = Form(None),
     api_key: str = Depends(verify_api_key)
 ):
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Arquivo deve ser PDF")
-    
-    content = await file.read()
+    content = await validate_pdf_upload(file)
     
     try:
         output = PdfService.add_password(content, user_password, owner_password)
@@ -104,7 +97,7 @@ async def add_password(
     return StreamingResponse(
         output,
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={safe_filename(get_output_filename(file.filename, 'protected'))}"}
+        headers={"Content-Disposition": f"attachment; filename={safe_filename(get_output_filename(sanitize_filename(file.filename), 'protected'))}"}
     )
 
 
@@ -114,10 +107,7 @@ async def remove_password(
     password: str = Form(...),
     api_key: str = Depends(verify_api_key)
 ):
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Arquivo deve ser PDF")
-    
-    content = await file.read()
+    content = await validate_pdf_upload(file)
     
     try:
         output = PdfService.remove_password(content, password)
@@ -129,7 +119,7 @@ async def remove_password(
     return StreamingResponse(
         output,
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={safe_filename(get_output_filename(file.filename, 'unlocked'))}"}
+        headers={"Content-Disposition": f"attachment; filename={safe_filename(get_output_filename(sanitize_filename(file.filename), 'unlocked'))}"}
     )
 
 
@@ -138,13 +128,10 @@ async def pdf_info(
     file: UploadFile = File(...),
     api_key: str = Depends(verify_api_key)
 ):
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Arquivo deve ser PDF")
-    
-    content = await file.read()
+    content = await validate_pdf_upload(file)
     
     try:
-        return PdfService.get_info(content, file.filename)
+        return PdfService.get_info(content, sanitize_filename(file.filename))
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erro ao processar PDF: {str(e)}")
 
@@ -157,23 +144,21 @@ async def convert_to_image(
     pages: Optional[str] = Form(None),
     api_key: str = Depends(verify_api_key)
 ):
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Arquivo deve ser PDF")
-    
     if dpi < 72 or dpi > 600:
         raise HTTPException(status_code=400, detail="DPI deve estar entre 72 e 600")
     
-    content = await file.read()
+    content = await validate_pdf_upload(file)
     
     try:
         buffer, ext, is_single, page_num, mime_type = PdfService.convert_to_image(content, format, dpi, pages)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erro ao processar PDF: {str(e)}")
     
+    base_name = sanitize_filename(file.filename).rsplit(".", 1)[0]
     if is_single:
-        output_name = file.filename.rsplit(".", 1)[0] + f"_page_{page_num}.{ext}"
+        output_name = f"{base_name}_page_{page_num}.{ext}"
     else:
-        output_name = file.filename.rsplit(".", 1)[0] + f"-images-{format}.zip"
+        output_name = f"{base_name}-images-{format}.zip"
     
     return StreamingResponse(
         buffer,
@@ -190,10 +175,7 @@ async def convert_to_ofx(
     account_type: Literal["CHECKING", "SAVINGS", "CREDITCARD"] = Form("CHECKING"),
     api_key: str = Depends(verify_api_key)
 ):
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Arquivo deve ser PDF")
-    
-    content = await file.read()
+    content = await validate_pdf_upload(file)
     
     try:
         ofx_content = PdfService.convert_to_ofx(content, bank_id, account_id, account_type)
@@ -206,7 +188,7 @@ async def convert_to_ofx(
             detail="Não foi possível extrair transações do PDF. Verifique se é um extrato bancário válido."
         )
     
-    output_name = file.filename.rsplit(".", 1)[0] + ".ofx"
+    output_name = sanitize_filename(file.filename).rsplit(".", 1)[0] + ".ofx"
     return StreamingResponse(
         io.BytesIO(ofx_content.encode("utf-8")),
         media_type="application/octet-stream",
@@ -219,10 +201,7 @@ async def extract_text(
     file: UploadFile = File(...),
     api_key: str = Depends(verify_api_key)
 ):
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Arquivo deve ser PDF")
-    
-    content = await file.read()
+    content = await validate_pdf_upload(file)
     
     try:
         pages_text = PdfService.extract_text(content)
@@ -230,7 +209,7 @@ async def extract_text(
         raise HTTPException(status_code=400, detail=f"Erro ao processar PDF: {str(e)}")
     
     return {
-        "filename": file.filename,
+        "filename": sanitize_filename(file.filename),
         "total_pages": len(pages_text),
         "pages": pages_text
     }

@@ -2,7 +2,7 @@ import io
 import pytest
 
 from app.main import app
-from app.auth import verify_api_key
+from app.auth_secure import verify_api_key
 from fastapi.testclient import TestClient
 
 
@@ -42,7 +42,7 @@ class TestPdfRoutesSplit:
         )
         
         assert response.status_code == 400
-        assert "PDF" in response.json()["detail"]
+        assert "pdf" in response.json()["detail"].lower()
 
 
 class TestPdfRoutesExtractPages:
