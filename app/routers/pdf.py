@@ -13,10 +13,8 @@ from app.auth import verify_api_key
 
 router = APIRouter()
 
-
 def safe_filename(filename: str) -> str:
     return quote(filename, safe='')
-
 
 def get_output_filename(original: str, operation: str) -> str:
     name = original.rsplit(".", 1)[0]
@@ -56,7 +54,7 @@ async def split_pdf(
     return StreamingResponse(
         output,
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={get_output_filename(file.filename, 'split')}"}
+        headers={"Content-Disposition": f"attachment; filename={safe_filename(get_output_filename(file.filename, 'split'))}"}
     )
 
 
@@ -93,7 +91,7 @@ async def extract_pages(
     return StreamingResponse(
         zip_buffer,
         media_type="application/zip",
-        headers={"Content-Disposition": f"attachment; filename={output_name}"}
+        headers={"Content-Disposition": f"attachment; filename={safe_filename(output_name)}"}
     )
 
 
@@ -128,7 +126,7 @@ async def merge_pdfs(
     return StreamingResponse(
         output,
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={first_name}-merged.pdf"}
+        headers={"Content-Disposition": f"attachment; filename={safe_filename(first_name + '-merged.pdf')}"}
     )
 
 
@@ -165,7 +163,7 @@ async def add_password(
     return StreamingResponse(
         output,
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={get_output_filename(file.filename, 'protected')}"}
+        headers={"Content-Disposition": f"attachment; filename={safe_filename(get_output_filename(file.filename, 'protected'))}"}
     )
 
 
@@ -195,7 +193,7 @@ async def remove_password(
     return StreamingResponse(
         output,
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={get_output_filename(file.filename, 'unlocked')}"}
+        headers={"Content-Disposition": f"attachment; filename={safe_filename(get_output_filename(file.filename, 'unlocked'))}"}
     )
 
 
@@ -301,9 +299,7 @@ async def convert_to_image(
         return StreamingResponse(
             io.BytesIO(img_bytes),
             media_type=config["mime"],
-            headers={
-                "Content-Disposition": f"attachment; filename*=UTF-8''{safe_filename(output_name)}"
-            }
+            headers={"Content-Disposition": f"attachment; filename={safe_filename(output_name)}"}
         )
     
     # Múltiplas páginas: retorna ZIP
@@ -329,9 +325,7 @@ async def convert_to_image(
     return StreamingResponse(
         zip_buffer,
         media_type="application/zip",
-        headers={
-            "Content-Disposition": f"attachment; filename*=UTF-8''{safe_filename(output_name)}"
-        }
+        headers={"Content-Disposition": f"attachment; filename={safe_filename(output_name)}"}
     )
 
 
@@ -371,10 +365,8 @@ async def convert_to_ofx(
     output_name = file.filename.rsplit(".", 1)[0] + ".ofx"
     return StreamingResponse(
         io.BytesIO(ofx_content.encode("utf-8")),
-        media_type="application/x-ofx",
-        headers={
-            "Content-Disposition": f"attachment; filename*=UTF-8''{safe_filename(output_name)}"
-        }
+        media_type="application/octet-stream",
+        headers={"Content-Disposition": f"attachment; filename={safe_filename(output_name)}"}
     )
 
 
