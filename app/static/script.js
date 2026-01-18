@@ -98,9 +98,13 @@ function downloadBlob(blob, filename) {
 function getFilenameFromResponse(response, fallback) {
     const disposition = response.headers.get('Content-Disposition');
     if (disposition) {
-        const match = disposition.match(/filename=(.+)$/);
+        let match = disposition.match(/filename\*?=(?:UTF-8'')?([^;\s]+)/i);
         if (match) {
-            return match[1].replace(/['"]/g, '');
+            let filename = match[1].replace(/['"]/g, '');
+            try {
+                filename = decodeURIComponent(filename);
+            } catch (e) {}
+            return filename;
         }
     }
     return fallback;
