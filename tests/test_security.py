@@ -73,11 +73,11 @@ class TestSanitizeFilename:
     
     def test_empty_filename(self):
         result = sanitize_filename("")
-        assert result == "documento"
+        assert result == "document"
     
     def test_none_filename(self):
         result = sanitize_filename(None)
-        assert result == "documento"
+        assert result == "document"
     
     def test_max_length(self):
         long_name = "a" * 300 + ".pdf"

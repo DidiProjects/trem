@@ -122,7 +122,7 @@ class TestPdfServiceExtractText:
         
         assert len(result) == 1
         assert result[0]["page"] == 1
-        assert "Texto de teste" in result[0]["text"]
+        assert "Test text" in result[0]["text"]
 
 
 class TestPdfServiceOFX:

@@ -76,7 +76,7 @@ class TestPdfRoutesMerge:
         )
         
         assert response.status_code == 400
-        assert "pelo menos 2" in response.json()["detail"]
+        assert "at least 2" in response.json()["detail"]
 
 
 class TestPdfRoutesPassword:
@@ -174,7 +174,7 @@ class TestPdfRoutesConvertToOfx:
         )
         
         assert response.status_code == 400
-        assert "extrair transações" in response.json()["detail"]
+        assert "extract transactions" in response.json()["detail"]
 
 
 class TestPdfRoutesExtractText:
