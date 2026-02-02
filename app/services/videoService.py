@@ -1,7 +1,6 @@
 from moviepy.editor import VideoFileClip
 import os
 
-# Extensões de vídeo suportadas
 VIDEO_EXTENSIONS = {'.mp4', '.avi', '.mov', '.mkv', '.webm', '.wmv', '.flv', '.m4v'}
 
 
@@ -68,7 +67,6 @@ def cut_video(input_path: str, start: float, end: float, output_path: str) -> st
     try:
         clip = VideoFileClip(input_path)
         
-        # Validar que o tempo final não excede a duração do vídeo
         if end > clip.duration:
             end = clip.duration
         

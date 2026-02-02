@@ -549,6 +549,57 @@ For specific formats, adjustments may be necessary.</pre>
                     <div class="endpoint-header" onclick="toggleEndpoint(this)">
                         <div class="endpoint-info">
                             <span class="method post">POST</span>
+                            <span class="path">/audio/cut</span>
+                            <span class="description">Recorta um áudio entre tempos definidos</span>
+                        </div>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="endpoint-details">
+                            <div class="detail-section">
+                                <h4>Parameters</h4>
+                                <table class="params-table">
+                                    <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+                                    <tr><td>file</td><td>file</td><td>Arquivo de áudio (mp3, wav, m4a, ogg, etc.)</td></tr>
+                                    <tr><td>start</td><td>number</td><td>Tempo inicial (segundos)</td></tr>
+                                    <tr><td>end</td><td>number</td><td>Tempo final (segundos)</td></tr>
+                                </table>
+                            </div>
+                            <div class="detail-section">
+                                <h4>Headers</h4>
+                                <pre class="code-block">X-API-Key: your-api-key</pre>
+                            </div>
+                            <div class="detail-section">
+                                <h4>cURL Example</h4>
+                                <pre class="code-block curl-example" data-endpoint="/audio/cut">curl -X POST "<span class="base-url"></span>/audio/cut" \
+                                -H "X-API-Key: your-api-key" \
+                                -F "file=@audio.mp3" \
+                                -F "start=30" \
+                                -F "end=60"</pre>
+                            </div>
+                        </div>
+                        <form id="cutAudioForm" class="api-form">
+                            <div class="form-group">
+                                <label for="cutAudioFile">Arquivo de áudio</label>
+                                <input type="file" id="cutAudioFile" accept=".mp3,.wav,.m4a,.ogg,.flac,.aac,.wma" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cutAudioStart">Tempo inicial (segundos)</label>
+                                <input type="number" id="cutAudioStart" min="0" value="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cutAudioEnd">Tempo final (segundos)</label>
+                                <input type="number" id="cutAudioEnd" min="1" value="10" required>
+                            </div>
+                            <button type="submit" class="btn-primary">Executar</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="endpoint-card">
+                    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                        <div class="endpoint-info">
+                            <span class="method post">POST</span>
                             <span class="path">/audio/transcribe</span>
                             <span class="description">Transcreve áudio ou vídeo para texto</span>
                         </div>

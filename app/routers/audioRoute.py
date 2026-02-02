@@ -1,11 +1,15 @@
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from starlette.background import BackgroundTask
 import tempfile
 import os
 from app.services.audioService import (
     transcribe,
     validate_transcription_input,
-    AudioServiceError
+    cut_audio,
+    validate_cut_input,
+    AudioServiceError,
+    AUDIO_EXTENSIONS
 )
 
 router = APIRouter()
@@ -21,6 +25,60 @@ def cleanup_files(*paths):
             pass
 
 
+@router.post("/cut")
+async def audio_cut(
+    file: UploadFile = File(...),
+    start: float = Form(...),
+    end: float = Form(...)
+):
+    """
+    Recorta um áudio entre os tempos definidos.
+    """
+    temp_in_path = None
+    temp_out_path = None
+    
+    try:
+        ext = validate_cut_input(file.filename, start, end)
+        
+        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp_in:
+            temp_in.write(await file.read())
+            temp_in_path = temp_in.name
+        
+        temp_out = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
+        temp_out_path = temp_out.name
+        temp_out.close()
+        
+        cut_audio(temp_in_path, start, end, temp_out_path)
+        
+        original_name = os.path.splitext(file.filename or 'audio')[0]
+        output_filename = f"{original_name}_recorte{ext}"
+        
+        media_types = {
+            '.mp3': 'audio/mpeg',
+            '.wav': 'audio/wav',
+            '.m4a': 'audio/mp4',
+            '.ogg': 'audio/ogg',
+            '.flac': 'audio/flac',
+            '.aac': 'audio/aac',
+            '.wma': 'audio/x-ms-wma'
+        }
+        media_type = media_types.get(ext, 'audio/mpeg')
+        
+        return FileResponse(
+            temp_out_path,
+            filename=output_filename,
+            media_type=media_type,
+            background=BackgroundTask(cleanup_files, temp_in_path, temp_out_path)
+        )
+    
+    except AudioServiceError as e:
+        cleanup_files(temp_in_path, temp_out_path)
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except Exception as e:
+        cleanup_files(temp_in_path, temp_out_path)
+        raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
+
+
 @router.post("/transcribe")
 async def audio_transcribe(
     file: UploadFile = File(...),
@@ -33,15 +91,12 @@ async def audio_transcribe(
     temp_path = None
     
     try:
-        # Validações no service
         ext = validate_transcription_input(file.filename, language)
         
-        # Salvar arquivo de entrada
         with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp_file:
             temp_file.write(await file.read())
             temp_path = temp_file.name
         
-        # Transcrever
         result = transcribe(temp_path, language)
         
         return JSONResponse(content=result)

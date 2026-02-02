@@ -216,6 +216,24 @@ function setupFormHandlers() {
         }
     });
 
+    // Audio Cut Form
+    document.getElementById('cutAudioForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('file', document.getElementById('cutAudioFile').files[0]);
+        formData.append('start', document.getElementById('cutAudioStart').value);
+        formData.append('end', document.getElementById('cutAudioEnd').value);
+
+        const response = await makeRequest('/audio/cut', formData);
+        if (response) {
+            const filename = getFilenameFromResponse(response, 'recorte.mp3');
+            const blob = await response.blob();
+            hideLoading();
+            downloadBlob(blob, filename);
+            showToast('Áudio recortado com sucesso!');
+        }
+    });
+
     document.getElementById('extractForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData();

@@ -32,23 +32,18 @@ async def movie_cut(
     temp_out_path = None
     
     try:
-        # Validações no service
         ext = validate_cut_input(file.filename, start, end)
         
-        # Salvar arquivo de entrada
         with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp_in:
             temp_in.write(await file.read())
             temp_in_path = temp_in.name
         
-        # Criar arquivo de saída
         temp_out = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
         temp_out_path = temp_out.name
         temp_out.close()
         
-        # Processar vídeo
         cut_video(temp_in_path, start, end, temp_out_path)
         
-        # Gerar nome do arquivo de saída
         original_name = os.path.splitext(file.filename or 'video')[0]
         output_filename = f"{original_name}_recorte.mp4"
         
@@ -79,15 +74,12 @@ async def movie_transcribe(
     temp_path = None
     
     try:
-        # Validações no service
         ext = validate_transcription_input(file.filename, language)
         
-        # Salvar arquivo de entrada
         with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp_file:
             temp_file.write(await file.read())
             temp_path = temp_file.name
         
-        # Transcrever
         result = transcribe(temp_path, language)
         
         return JSONResponse(content=result)

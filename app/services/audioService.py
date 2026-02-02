@@ -1,16 +1,14 @@
 import whisper
 import os
 import tempfile
-from moviepy.editor import VideoFileClip
+from moviepy.editor import VideoFileClip, AudioFileClip
 
 _whisper_model = None
 
-# Extensões suportadas
 VIDEO_EXTENSIONS = {'.mp4', '.avi', '.mov', '.mkv', '.webm', '.wmv', '.flv', '.m4v'}
 AUDIO_EXTENSIONS = {'.mp3', '.wav', '.m4a', '.ogg', '.flac', '.aac', '.wma'}
 SUPPORTED_EXTENSIONS = VIDEO_EXTENSIONS | AUDIO_EXTENSIONS
 
-# Idiomas suportados
 SUPPORTED_LANGUAGES = {'pt', 'en', 'es', 'fr', 'de', 'it', 'ja', 'zh', 'ko', 'ru', 'ar', 'hi', 'nl', 'pl', 'tr'}
 
 
@@ -28,6 +26,85 @@ def get_whisper_model():
     if _whisper_model is None:
         _whisper_model = whisper.load_model("base")
     return _whisper_model
+
+
+def validate_cut_input(filename: str, start: float, end: float) -> str:
+    """
+    Valida os parâmetros de entrada para recorte de áudio.
+    
+    Args:
+        filename: Nome do arquivo
+        start: Tempo inicial em segundos
+        end: Tempo final em segundos
+    
+    Returns:
+        Extensão do arquivo validada
+    
+    Raises:
+        AudioServiceError: Se validação falhar
+    """
+    if not filename:
+        raise AudioServiceError("Nome do arquivo é obrigatório")
+    
+    ext = os.path.splitext(filename)[1].lower()
+    if ext not in AUDIO_EXTENSIONS:
+        raise AudioServiceError(
+            f"Formato não suportado. Use: {', '.join(sorted(AUDIO_EXTENSIONS))}"
+        )
+    
+    if start < 0:
+        raise AudioServiceError("Tempo inicial deve ser >= 0")
+    
+    if end <= start:
+        raise AudioServiceError("Tempo final deve ser maior que o inicial")
+    
+    return ext
+
+
+def cut_audio(input_path: str, start: float, end: float, output_path: str) -> str:
+    """
+    Recorta um áudio entre os tempos start e end (em segundos).
+    
+    Args:
+        input_path: Caminho do arquivo de áudio de entrada
+        start: Tempo inicial em segundos
+        end: Tempo final em segundos
+        output_path: Caminho do arquivo de saída
+    
+    Returns:
+        Caminho do arquivo de saída
+    
+    Raises:
+        AudioServiceError: Se ocorrer erro no processamento
+    """
+    clip = None
+    subclip = None
+    
+    try:
+        clip = AudioFileClip(input_path)
+        
+        if end > clip.duration:
+            end = clip.duration
+        
+        if start >= clip.duration:
+            raise AudioServiceError(
+                f"Tempo inicial ({start}s) excede a duração do áudio ({clip.duration:.2f}s)"
+            )
+        
+        subclip = clip.subclip(start, end)
+        subclip.write_audiofile(output_path, logger=None)
+        return output_path
+    
+    except AudioServiceError:
+        raise
+    except Exception as e:
+        raise AudioServiceError(f"Erro ao processar áudio: {str(e)}", status_code=500)
+    
+    finally:
+        if subclip:
+            subclip.close()
+        if clip:
+            clip.close()
 
 
 def validate_transcription_input(filename: str, language: str = None) -> str:
@@ -83,7 +160,6 @@ def transcribe(input_path: str, language: str = None) -> dict:
     try:
         ext = os.path.splitext(input_path)[1].lower()
         
-        # Se for vídeo, extrair áudio primeiro
         if ext in VIDEO_EXTENSIONS:
             clip = VideoFileClip(input_path)
             duration = clip.duration
@@ -96,13 +172,11 @@ def transcribe(input_path: str, language: str = None) -> dict:
             file_to_transcribe = audio_path
         else:
             file_to_transcribe = input_path
-            # Tentar obter duração do áudio
             try:
                 import wave
                 with wave.open(input_path, 'rb') as audio:
                     duration = audio.getnframes() / audio.getframerate()
             except:
-                # Se não for WAV, tenta com moviepy
                 try:
                     from moviepy.editor import AudioFileClip
                     audio_clip = AudioFileClip(input_path)
@@ -111,7 +185,6 @@ def transcribe(input_path: str, language: str = None) -> dict:
                 except:
                     duration = None
         
-        # Carregar modelo e transcrever
         model = get_whisper_model()
         
         options = {}
@@ -120,7 +193,6 @@ def transcribe(input_path: str, language: str = None) -> dict:
         
         result = model.transcribe(file_to_transcribe, **options)
         
-        # Formatar segmentos
         segments = []
         for segment in result.get('segments', []):
             segments.append({
@@ -142,7 +214,6 @@ def transcribe(input_path: str, language: str = None) -> dict:
         raise AudioServiceError(f"Erro ao transcrever: {str(e)}", status_code=500)
     
     finally:
-        # Limpar recursos
         if clip:
             clip.close()
         if audio_path and os.path.exists(audio_path):
