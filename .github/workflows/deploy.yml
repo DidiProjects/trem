@@ -90,16 +90,16 @@ jobs:
             -p 0.0.0.0:${{ vars.API_PORT }}:${{ vars.CONTAINER_PORT }} \
             --restart=unless-stopped \
             --network=bridge \
-            -e API_PORT=${{ vars.API_PORT }} \
-            -e API_URL=${{ vars.API_URL }} \
-            -e API_KEY=${{ secrets.API_KEY }} \
+            -e API_PORT="${{ vars.API_PORT }}" \
+            -e API_URL="${{ vars.API_URL }}" \
+            -e API_KEY="${{ secrets.API_KEY }}" \
             -e UPLOAD_DIR=/tmp/uploads \
             -e MAX_FILE_SIZE=52428800 \
-            -e EMAIL_RECIPIENT=${{ vars.EMAIL_RECIPIENT }} \
-            -e EMAIL_SMTP_HOST=${{ vars.EMAIL_SMTP_HOST }} \
-            -e EMAIL_SMTP_PORT=${{ vars.EMAIL_SMTP_PORT }} \
-            -e EMAIL_SMTP_USER=${{ vars.EMAIL_SMTP_USER }} \
-            -e EMAIL_SMTP_PASSWORD=${{ secrets.EMAIL_SMTP_PASSWORD }} \
+            -e EMAIL_RECIPIENT="${{ vars.EMAIL_RECIPIENT }}" \
+            -e EMAIL_SMTP_HOST="${{ vars.EMAIL_SMTP_HOST }}" \
+            -e EMAIL_SMTP_PORT="${{ vars.EMAIL_SMTP_PORT }}" \
+            -e EMAIL_SMTP_USER="${{ vars.EMAIL_SMTP_USER }}" \
+            -e EMAIL_SMTP_PASSWORD="${{ secrets.EMAIL_SMTP_PASSWORD }}" \
             ghcr.io/${REPO_LOWER}:latest
           
           EOF
