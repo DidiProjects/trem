@@ -495,4 +495,46 @@ function setupFormHandlers() {
             showToast('Image compressed successfully!');
         }
     });
+
+    // Feedback form handlers
+    const feedbackMessage = document.getElementById('feedbackMessage');
+    const charCount = document.getElementById('charCount');
+    
+    if (feedbackMessage && charCount) {
+        feedbackMessage.addEventListener('input', function() {
+            charCount.textContent = this.value.length;
+        });
+    }
+
+    document.getElementById('feedbackForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData();
+        formData.append('type', document.getElementById('feedbackType').value);
+        formData.append('message', document.getElementById('feedbackMessage').value);
+        
+        const email = document.getElementById('feedbackEmail').value;
+        if (email) {
+            formData.append('email', email);
+        }
+
+        const response = await makeRequest('/support/feedback', formData);
+        if (response) {
+            const data = await response.json();
+            hideLoading();
+            
+            if (data.success) {
+                document.getElementById('feedbackForm').classList.add('hidden');
+                document.getElementById('feedbackSuccess').classList.remove('hidden');
+                showToast('Feedback sent successfully!', 'success');
+            }
+        }
+    });
+}
+
+function resetFeedbackForm() {
+    document.getElementById('feedbackForm').reset();
+    document.getElementById('charCount').textContent = '0';
+    document.getElementById('feedbackForm').classList.remove('hidden');
+    document.getElementById('feedbackSuccess').classList.add('hidden');
 }

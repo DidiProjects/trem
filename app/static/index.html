@@ -836,10 +836,49 @@ For specific formats, adjustments may be necessary.</pre>
         </div>
 
         <div class="section-content" id="section-others">
-            <div class="empty-state">
-                <span class="empty-icon">🚧</span>
-                <h3>Coming soon</h3>
-                <p>New features will be added here.</p>
+            <div class="feedback-container">
+                <div class="feedback-header">
+                    <span class="feedback-icon">📨</span>
+                    <h3>Feedback & Support</h3>
+                    <p>Have a suggestion or found a bug? Let us know!</p>
+                </div>
+                
+                <form id="feedbackForm" class="api-form feedback-form">
+                    <div class="form-group">
+                        <label for="feedbackType">Type</label>
+                        <select id="feedbackType" required>
+                            <option value="suggestion">Feature Suggestion</option>
+                            <option value="bug">Bug Report</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedbackEmail">Your Email (optional)</label>
+                        <input type="email" id="feedbackEmail" placeholder="your@email.com">
+                        <small class="form-hint">Leave your email if you'd like a response</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedbackMessage">Message</label>
+                        <textarea id="feedbackMessage" rows="6" required 
+                            placeholder="Describe your suggestion, the bug you found, or any feedback..."
+                            maxlength="5000"></textarea>
+                        <small class="form-hint"><span id="charCount">0</span>/5000 characters</small>
+                    </div>
+                    <button type="submit" class="btn-primary btn-feedback">
+                        Send Feedback
+                    </button>
+                </form>
+                
+                <div id="feedbackSuccess" class="feedback-success hidden">
+                    <h4>Thank you!</h4>
+                    <p>Your feedback has been sent successfully.</p>
+                    <button onclick="resetFeedbackForm()" class="btn-secondary">Send another</button>
+                </div>
+            </div>
+            
+            <div class="coming-soon-note">
+                <span>🚧</span>
+                <p><strong>Coming soon:</strong> More tools and features are being developed!</p>
             </div>
         </div>
 

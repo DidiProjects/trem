@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from pathlib import Path
-from app.routers import pdfRoute, videoRoute, audioRoute, imageRoute
+from app.routers import pdfRoute, videoRoute, audioRoute, imageRoute, supportRoute
 from app.config import get_settings
 
 static_dir = Path(__file__).parent / "static"
@@ -43,6 +43,7 @@ app.include_router(pdfRoute.router, prefix="/pdf", tags=["PDF"])
 app.include_router(videoRoute.router, prefix="/movie", tags=["Movies"])
 app.include_router(audioRoute.router, prefix="/audio", tags=["Audio"])
 app.include_router(imageRoute.router, prefix="/image", tags=["Image"])
+app.include_router(supportRoute.router, prefix="/support", tags=["Support"])
 
 
 @app.get("/")
