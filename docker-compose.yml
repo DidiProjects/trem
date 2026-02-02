@@ -1,7 +1,7 @@
 services:
   api:
     build: .
-    container_name: pdf-api
+    container_name: trem-api
     ports:
       - "3002:3002"
     environment:

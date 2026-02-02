@@ -139,6 +139,7 @@ async function makeRequest(endpoint, formData) {
 }
 
 function setupFormHandlers() {
+    // PDF Split Form
     document.getElementById('splitForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData();
@@ -152,6 +153,24 @@ function setupFormHandlers() {
             hideLoading();
             downloadBlob(blob, filename);
             showToast('PDF split successfully!');
+        }
+    });
+
+    // Video Cut Form
+    document.getElementById('cutMovieForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('file', document.getElementById('cutMovieFile').files[0]);
+        formData.append('start', document.getElementById('cutMovieStart').value);
+        formData.append('end', document.getElementById('cutMovieEnd').value);
+
+        const response = await makeRequest('/movie/cut', formData);
+        if (response) {
+            const filename = getFilenameFromResponse(response, 'recorte.mp4');
+            const blob = await response.blob();
+            hideLoading();
+            downloadBlob(blob, filename);
+            showToast('Vídeo recortado com sucesso!');
         }
     });
 
