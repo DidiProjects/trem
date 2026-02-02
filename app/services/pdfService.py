@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import List, Literal, Optional
 import pikepdf
 import fitz
+from PIL import Image
 from app.utils import parse_page_ranges
 
 
@@ -154,7 +155,10 @@ class PdfService:
             if format == "jpeg":
                 img_bytes = pix.tobytes("jpeg")
             elif format == "tiff":
-                img_bytes = pix.tobytes("tiff")
+                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                tiff_buffer = io.BytesIO()
+                img.save(tiff_buffer, format="TIFF")
+                img_bytes = tiff_buffer.getvalue()
             else:
                 img_bytes = pix.tobytes("png")
             
@@ -170,7 +174,10 @@ class PdfService:
                 if format == "jpeg":
                     img_bytes = pix.tobytes("jpeg")
                 elif format == "tiff":
-                    img_bytes = pix.tobytes("tiff")
+                    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                    tiff_buffer = io.BytesIO()
+                    img.save(tiff_buffer, format="TIFF")
+                    img_bytes = tiff_buffer.getvalue()
                 else:
                     img_bytes = pix.tobytes("png")
                 
