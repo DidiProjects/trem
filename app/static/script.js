@@ -34,16 +34,32 @@ async function loadConfig() {
 function setupMainTabs() {
     const mainTabs = document.querySelectorAll('.main-tab');
     const sections = document.querySelectorAll('.section-content');
+    const mobileSelect = document.getElementById('mobileTabSelect');
+
+    function switchToSection(sectionName) {
+        mainTabs.forEach(t => t.classList.remove('active'));
+        sections.forEach(s => s.classList.remove('active'));
+        
+        const activeTab = document.querySelector(`.main-tab[data-section="${sectionName}"]`);
+        if (activeTab) activeTab.classList.add('active');
+        
+        const activeSection = document.getElementById(`section-${sectionName}`);
+        if (activeSection) activeSection.classList.add('active');
+        
+        if (mobileSelect) mobileSelect.value = sectionName;
+    }
 
     mainTabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            mainTabs.forEach(t => t.classList.remove('active'));
-            sections.forEach(s => s.classList.remove('active'));
-            
-            tab.classList.add('active');
-            document.getElementById(`section-${tab.dataset.section}`).classList.add('active');
+            switchToSection(tab.dataset.section);
         });
     });
+
+    if (mobileSelect) {
+        mobileSelect.addEventListener('change', () => {
+            switchToSection(mobileSelect.value);
+        });
+    }
 }
 
 function toggleEndpoint(header) {
