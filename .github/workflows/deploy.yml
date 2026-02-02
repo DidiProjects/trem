@@ -44,14 +44,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set lowercase repository name
+        id: repo
+        run: echo "name=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
+
       - name: Build and push to GHCR
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}:buildcache,mode=max
+          tags: ghcr.io/${{ steps.repo.outputs.name }}:latest
+          cache-from: type=registry,ref=ghcr.io/${{ steps.repo.outputs.name }}:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ steps.repo.outputs.name }}:buildcache,mode=max
 
       - name: Setup Tailscale
         uses: tailscale/github-action@v2
@@ -66,11 +70,12 @@ jobs:
 
       - name: Pull and deploy on Home Server
         run: |
-          ssh -o StrictHostKeyChecking=no -p 1024 diego@${{ vars.TAILSCALE_IP }} << 'EOF'
+          REPO_LOWER="${{ steps.repo.outputs.name }}"
+          ssh -o StrictHostKeyChecking=no -p 1024 diego@${{ vars.TAILSCALE_IP }} << EOF
           
           echo "${{ secrets.GITHUB_TOKEN }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
           
-          sudo docker pull ghcr.io/${{ github.repository }}:latest
+          sudo docker pull ghcr.io/${REPO_LOWER}:latest
           
           sudo docker stop trem-api || true
           sudo docker rm trem-api || true
@@ -86,7 +91,7 @@ jobs:
             -e API_KEY=${{ secrets.API_KEY }} \
             -e UPLOAD_DIR=/tmp/uploads \
             -e MAX_FILE_SIZE=52428800 \
-            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${REPO_LOWER}:latest
           
           EOF
 
