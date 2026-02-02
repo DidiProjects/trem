@@ -61,7 +61,7 @@ class TestGetOutputFilename:
         assert result == "arquivo.v2-split.pdf"
 
     def test_recorte_operation(self):
-        result = get_output_filename("video.mp4", "recorte")
+        result = get_output_filename("video.mp4", "recorte", preserve_extension=True)
         assert result == "video-recorte.mp4"
 
 
