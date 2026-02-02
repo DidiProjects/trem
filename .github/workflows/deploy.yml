@@ -31,43 +31,50 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      # Checkout do código
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Build da imagem Docker otimizada
-      - name: Build Docker image
-        run: |
-          docker build -t trem-api:latest .
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      # Conectar ao Tailscale com authkey
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push to GHCR
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}:buildcache,mode=max
+
       - name: Setup Tailscale
         uses: tailscale/github-action@v2
         with:
           authkey: ${{ secrets.TAILSCALE_CLIENT_SECRET }}
           tags: tag:github-actions
 
-      # Configurar SSH
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      # Enviar imagem Docker
-      - name: Push Docker image to Home Server
-        run: |
-          docker save trem-api:latest | gzip -1 | ssh -o StrictHostKeyChecking=no -p 1024 diego@${{ vars.TAILSCALE_IP }} "gunzip | sudo docker load"
-
-      # Deploy container
-      - name: Deploy container on Home Server
+      - name: Pull and deploy on Home Server
         run: |
           ssh -o StrictHostKeyChecking=no -p 1024 diego@${{ vars.TAILSCALE_IP }} << 'EOF'
           
-          # Parar e remover container atual
+          echo "${{ secrets.GITHUB_TOKEN }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          
+          sudo docker pull ghcr.io/${{ github.repository }}:latest
+          
           sudo docker stop trem-api || true
           sudo docker rm trem-api || true
           
-          # Executar novo container COM as variáveis de porta
           sudo docker run -d --name trem-api \
             --label app=trem-api \
             --label project=trem \
@@ -79,7 +86,7 @@ jobs:
             -e API_KEY=${{ secrets.API_KEY }} \
             -e UPLOAD_DIR=/tmp/uploads \
             -e MAX_FILE_SIZE=52428800 \
-            trem-api:latest
+            ghcr.io/${{ github.repository }}:latest
           
           EOF
 
