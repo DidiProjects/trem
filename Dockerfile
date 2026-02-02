@@ -11,6 +11,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     libmupdf-dev \
     ffmpeg \
+    libcairo2 \
+    libcairo2-dev \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 

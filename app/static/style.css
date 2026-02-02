@@ -378,6 +378,56 @@ input[type="file"]::file-selector-button:hover {
     transform: scale(1.05);
 }
 
+input[type="range"] {
+    width: 100%;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #00d9ff, #00ff88);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #00d9ff, #00ff88);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+input[type="number"] {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: #fff;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+input[type="number"]:focus {
+    outline: none;
+    border-color: #00d9ff;
+    box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.2);
+}
+
 .btn-primary {
     background: linear-gradient(135deg, #00d9ff, #00ff88);
     border: none;
@@ -643,5 +693,74 @@ input[type="file"]::file-selector-button:hover {
 
     .path {
         font-size: 0.9rem;
+    }
+}
+
+/* Metrics Box */
+.metrics-box {
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 200, 255, 0.1));
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.metrics-box h4 {
+    color: #00ff88;
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.metric-item {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.metric-item.highlight {
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 200, 255, 0.2));
+    border: 1px solid rgba(0, 255, 136, 0.4);
+}
+
+.metric-label {
+    display: block;
+    color: #888;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.metric-value {
+    display: block;
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.metric-item.highlight .metric-value {
+    color: #00ff88;
+    font-size: 1.4rem;
+}
+
+@media (max-width: 480px) {
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .metric-value {
+        font-size: 1rem;
+    }
+    
+    .metric-item.highlight .metric-value {
+        font-size: 1.2rem;
     }
 }

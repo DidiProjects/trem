@@ -27,6 +27,7 @@
 
         <div class="main-tabs">
             <button class="main-tab active" data-section="pdf">PDF</button>
+            <button class="main-tab" data-section="image">Image</button>
             <button class="main-tab" data-section="movies">Movies</button>
             <button class="main-tab" data-section="audio">Audio</button>
             <button class="main-tab" data-section="others">Others</button>
@@ -35,6 +36,7 @@
         <div class="main-tabs-mobile">
             <select id="mobileTabSelect">
                 <option value="pdf">PDF</option>
+                <option value="image">Image</option>
                 <option value="movies">Movies</option>
                 <option value="audio">Audio</option>
                 <option value="others">Others</option>
@@ -666,6 +668,168 @@ For specific formats, adjustments may be necessary.</pre>
                             <button type="submit" class="btn-primary">Transcrever</button>
                         </form>
                         <div id="transcribeResult" class="result-box hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-content" id="section-image">
+            <div class="endpoints-section">
+                <div class="endpoint-card">
+                    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                        <div class="endpoint-info">
+                            <span class="method post">POST</span>
+                            <span class="path">/image/to-pdf</span>
+                            <span class="description">Convert images to PDF</span>
+                        </div>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="endpoint-details">
+                            <div class="detail-section">
+                                <h4>Parameters</h4>
+                                <table class="params-table">
+                                    <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+                                    <tr><td>files</td><td>file[]</td><td>Image files (jpg, png, webp, etc.)</td></tr>
+                                    <tr><td>layout</td><td>string</td><td>single (1 image per page) or grouped</td></tr>
+                                    <tr><td>images_per_page</td><td>number</td><td>Images per page when grouped (1-9)</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                        <form id="imageToPdfForm" class="api-form">
+                            <div class="form-group">
+                                <label for="imageToPdfFiles">Images</label>
+                                <input type="file" id="imageToPdfFiles" accept="image/*,.svg" multiple required>
+                            </div>
+                            <div class="form-group">
+                                <label for="imageToPdfLayout">Layout</label>
+                                <select id="imageToPdfLayout">
+                                    <option value="single">One image per page</option>
+                                    <option value="grouped">Group images per page</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="imagesPerPageGroup" style="display: none;">
+                                <label for="imagesPerPage">Images per page</label>
+                                <select id="imagesPerPage">
+                                    <option value="2">2</option>
+                                    <option value="4" selected>4</option>
+                                    <option value="6">6</option>
+                                    <option value="9">9</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn-primary">Execute</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="endpoint-card">
+                    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                        <div class="endpoint-info">
+                            <span class="method post">POST</span>
+                            <span class="path">/image/convert</span>
+                            <span class="description">Convert image to another format</span>
+                        </div>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="endpoint-details">
+                            <div class="detail-section">
+                                <h4>Parameters</h4>
+                                <table class="params-table">
+                                    <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+                                    <tr><td>file</td><td>file</td><td>Image file</td></tr>
+                                    <tr><td>format</td><td>string</td><td>Output format (jpeg, png, webp, gif, bmp, tiff)</td></tr>
+                                    <tr><td>quality</td><td>number</td><td>Quality 1-100 (for jpeg/webp)</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                        <form id="imageConvertForm" class="api-form">
+                            <div class="form-group">
+                                <label for="imageConvertFile">Image</label>
+                                <input type="file" id="imageConvertFile" accept="image/*,.svg" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="imageConvertFormat">Output format</label>
+                                <select id="imageConvertFormat">
+                                    <option value="jpeg">JPEG</option>
+                                    <option value="png">PNG</option>
+                                    <option value="webp">WebP</option>
+                                    <option value="gif">GIF</option>
+                                    <option value="bmp">BMP</option>
+                                    <option value="tiff">TIFF</option>
+                                    <option value="svg">SVG (apenas de SVG)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="imageConvertQuality">Quality (1-100)</label>
+                                <input type="number" id="imageConvertQuality" value="95" min="1" max="100">
+                            </div>
+                            <button type="submit" class="btn-primary">Execute</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="endpoint-card">
+                    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                        <div class="endpoint-info">
+                            <span class="method post">POST</span>
+                            <span class="path">/image/compress</span>
+                            <span class="description">Compress image reducing file size</span>
+                        </div>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="endpoint-details">
+                            <div class="detail-section">
+                                <h4>Parameters</h4>
+                                <table class="params-table">
+                                    <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+                                    <tr><td>file</td><td>file</td><td>Image file</td></tr>
+                                    <tr><td>quality</td><td>number</td><td>Compression level 1-100 (lower = smaller)</td></tr>
+                                    <tr><td>max_dimension</td><td>number</td><td>Max width/height (optional)</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                        <form id="imageCompressForm" class="api-form">
+                            <div class="form-group">
+                                <label for="imageCompressFile">Image</label>
+                                <input type="file" id="imageCompressFile" accept="image/*" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="imageCompressQuality">Quality: <span id="qualityValue">70</span>%</label>
+                                <input type="range" id="imageCompressQuality" value="70" min="1" max="100">
+                            </div>
+                            <div class="form-group">
+                                <label for="imageCompressMaxDim">Max dimension (optional)</label>
+                                <input type="number" id="imageCompressMaxDim" placeholder="E.g., 1920" min="100">
+                            </div>
+                            <button type="submit" class="btn-primary">Execute</button>
+                        </form>
+                        <div id="compressMetrics" class="metrics-box hidden">
+                            <h4>Compression Results</h4>
+                            <div class="metrics-grid">
+                                <div class="metric-item">
+                                    <span class="metric-label">Original Size</span>
+                                    <span class="metric-value" id="metricOriginalSize">-</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">Compressed Size</span>
+                                    <span class="metric-value" id="metricCompressedSize">-</span>
+                                </div>
+                                <div class="metric-item highlight">
+                                    <span class="metric-label">Reduction</span>
+                                    <span class="metric-value" id="metricReduction">-</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">Original Dimensions</span>
+                                    <span class="metric-value" id="metricOriginalDim">-</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">Final Dimensions</span>
+                                    <span class="metric-value" id="metricFinalDim">-</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

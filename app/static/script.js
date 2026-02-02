@@ -111,6 +111,14 @@ function downloadBlob(blob, filename) {
     document.body.removeChild(a);
 }
 
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
 function getFilenameFromResponse(response, fallback) {
     const disposition = response.headers.get('Content-Disposition');
     if (disposition) {
@@ -389,6 +397,102 @@ function setupFormHandlers() {
             hideLoading();
             downloadBlob(blob, filename);
             showToast('PDF converted to OFX successfully!');
+        }
+    });
+
+    document.getElementById('imageToPdfLayout').addEventListener('change', function() {
+        const imagesPerPageGroup = document.getElementById('imagesPerPageGroup');
+        imagesPerPageGroup.style.display = this.value === 'grouped' ? 'block' : 'none';
+    });
+
+    document.getElementById('imageToPdfForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const files = document.getElementById('imageToPdfFiles').files;
+        
+        if (files.length === 0) {
+            showToast('Select at least one image', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+            formData.append('files', files[i]);
+        }
+        formData.append('layout', document.getElementById('imageToPdfLayout').value);
+        formData.append('images_per_page', document.getElementById('imagesPerPage').value);
+
+        const response = await makeRequest('/image/to-pdf', formData);
+        if (response) {
+            const filename = getFilenameFromResponse(response, 'images.pdf');
+            const blob = await response.blob();
+            hideLoading();
+            downloadBlob(blob, filename);
+            showToast('Images converted to PDF successfully!');
+        }
+    });
+
+    document.getElementById('imageConvertForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('file', document.getElementById('imageConvertFile').files[0]);
+        formData.append('format', document.getElementById('imageConvertFormat').value);
+        formData.append('quality', document.getElementById('imageConvertQuality').value);
+
+        const response = await makeRequest('/image/convert', formData);
+        if (response) {
+            const filename = getFilenameFromResponse(response, 'converted.jpg');
+            const blob = await response.blob();
+            hideLoading();
+            downloadBlob(blob, filename);
+            showToast('Image converted successfully!');
+        }
+    });
+
+    document.getElementById('imageCompressQuality').addEventListener('input', function() {
+        document.getElementById('qualityValue').textContent = this.value;
+    });
+
+    document.getElementById('imageCompressForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('file', document.getElementById('imageCompressFile').files[0]);
+        formData.append('quality', document.getElementById('imageCompressQuality').value);
+        formData.append('response_type', 'json');
+        
+        const maxDim = document.getElementById('imageCompressMaxDim').value;
+        if (maxDim) {
+            formData.append('max_dimension', maxDim);
+        }
+
+        const response = await makeRequest('/image/compress', formData);
+        if (response) {
+            const data = await response.json();
+            hideLoading();
+            
+            const metrics = data.metrics;
+            const file = data.file;
+            
+            // Update metrics display
+            const metricsBox = document.getElementById('compressMetrics');
+            metricsBox.classList.remove('hidden');
+            
+            document.getElementById('metricOriginalSize').textContent = formatBytes(metrics.original_size_bytes);
+            document.getElementById('metricCompressedSize').textContent = formatBytes(metrics.compressed_size_bytes);
+            document.getElementById('metricReduction').textContent = `${metrics.reduction_percent}%`;
+            document.getElementById('metricOriginalDim').textContent = `${metrics.original_dimensions.width} × ${metrics.original_dimensions.height}`;
+            document.getElementById('metricFinalDim').textContent = `${metrics.final_dimensions.width} × ${metrics.final_dimensions.height}`;
+            
+            // Download file from base64
+            const byteCharacters = atob(file.base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: file.media_type });
+            
+            downloadBlob(blob, file.filename);
+            showToast('Image compressed successfully!');
         }
     });
 }
