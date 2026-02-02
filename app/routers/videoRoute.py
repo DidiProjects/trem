@@ -1,8 +1,9 @@
-from fastapi import APIRouter, File, UploadFile, Form, HTTPException
+from fastapi import APIRouter, Depends, File, UploadFile, Form, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from starlette.background import BackgroundTask
 import tempfile
 import os
+from app.auth_secure import verify_api_key
 from app.services.videoService import cut_video, validate_cut_input, VideoServiceError
 from app.services.audioService import transcribe, validate_transcription_input, AudioServiceError
 
@@ -23,7 +24,8 @@ def cleanup_files(*paths):
 async def movie_cut(
     file: UploadFile = File(...),
     start: float = Form(...),
-    end: float = Form(...)
+    end: float = Form(...),
+    api_key: str = Depends(verify_api_key)
 ):
     """
     Recorta um vídeo entre os tempos definidos.
@@ -65,7 +67,8 @@ async def movie_cut(
 @router.post("/transcribe")
 async def movie_transcribe(
     file: UploadFile = File(...),
-    language: str = Form(None)
+    language: str = Form(None),
+    api_key: str = Depends(verify_api_key)
 ):
     """
     Transcreve o áudio de um vídeo para texto.
