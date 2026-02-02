@@ -1,6 +1,6 @@
-# PDF API
+# API Tools
 
-REST API for PDF file manipulation with API Key authentication.
+REST API for PDF, Video and Audio file manipulation with API Key authentication.
 
 ## Features
 
@@ -12,10 +12,18 @@ REST API for PDF file manipulation with API Key authentication.
 - **Remove Password**: Remove password from a protected PDF
 - **PDF Info**: Get PDF information and metadata
 
-### Conversion
+### PDF Conversion
 - **Convert to Image**: Convert PDF to PNG, JPEG, or TIFF
 - **Convert to OFX**: Extract transactions from bank statements to OFX
 - **Extract Text**: Extract text from all PDF pages
+
+### Video Manipulation
+- **Cut Video**: Extract a segment from a video by start/end time
+- **Transcribe Video**: Transcribe video audio to text with timestamps
+
+### Audio Manipulation
+- **Cut Audio**: Extract a segment from an audio file by start/end time
+- **Transcribe Audio**: Transcribe audio to text with timestamps
 
 ## Architecture
 
@@ -25,34 +33,52 @@ app/
 ├── auth_secure.py       # Authentication with rate limiting
 ├── config.py            # Configuration
 ├── routers/
-│   └── pdfRoute.py      # Controller - HTTP endpoints
+│   ├── pdfRoute.py      # PDF endpoints
+│   ├── videoRoute.py    # Video endpoints
+│   └── audioRoute.py    # Audio endpoints
 ├── services/
-│   └── pdfService.py    # PDF processing logic
+│   ├── pdfService.py    # PDF processing logic
+│   ├── videoService.py  # Video processing logic
+│   └── audioService.py  # Audio processing logic
 └── utils/
     ├── filename.py      # Filename utilities
     ├── pagination.py    # Page range parser
     └── security.py      # Security validations
 ```
 
+## Supported Formats
+
+### Video
+- MP4, AVI, MOV, MKV, WebM, WMV, FLV, M4V
+
+### Audio
+- MP3, WAV, M4A, OGG, FLAC, AAC, WMA
+
+### Transcription Languages
+- Portuguese (pt), English (en), Spanish (es), French (fr), German (de)
+- Italian (it), Japanese (ja), Chinese (zh), Korean (ko), Russian (ru)
+- Arabic (ar), Hindi (hi), Dutch (nl), Polish (pl), Turkish (tr)
+
 ## Security
 
 ### File Protection
-- ✅ Magic bytes validation (verifies actual PDF content)
-- ✅ Size limit (50MB per file)
-- ✅ Filename sanitization
-- ✅ Path traversal protection
-- ✅ Limit of 20 files per merge
+- Magic bytes validation (verifies actual file content)
+- Size limit (50MB for PDF, 100MB for ZIP)
+- Filename sanitization
+- Path traversal protection
+- Limit of 20 files per merge
 
 ### Authentication
-- ✅ API Key with timing-safe comparison
-- ✅ Rate limiting (100 req/min per IP)
-- ✅ Blocking after 10 failed attempts (5 min)
-- ✅ Authentication attempt logging
+- API Key with timing-safe comparison
+- Rate limiting (100 req/min per IP)
+- Blocking after 10 failed attempts (5 min)
+- Authentication attempt logging
 
 ## Requirements
 
 - Docker
 - Docker Compose
+- FFmpeg (included in Docker image)
 
 ## Configuration
 
@@ -84,25 +110,26 @@ uvicorn app.main:app --reload
 ## Tests
 
 ```bash
-# Run all tests
-docker exec pdf-api pytest -v
+docker exec trem-api pytest -v
 
-# Run specific tests
-docker exec pdf-api pytest tests/test_security.py -v
-docker exec pdf-api pytest tests/test_services.py -v
-docker exec pdf-api pytest tests/test_routes.py -v
+docker exec trem-api pytest tests/test_services.py -v
+docker exec trem-api pytest tests/test_utils.py -v
+docker exec trem-api pytest tests/test_routes.py -v
+docker exec trem-api pytest tests/test_security.py -v
 ```
 
 ## Endpoints
 
-All endpoints require the `X-API-Key` header with your access key.
+All endpoints require the `X-API-Key` header.
 
 ### Health Check
 ```
 GET /health
 ```
 
-### Split PDF
+### PDF Endpoints
+
+#### Split PDF
 ```
 POST /pdf/split
 Content-Type: multipart/form-data
@@ -111,16 +138,15 @@ file: document.pdf
 pages: "1-3,5,7-10"
 ```
 
-### Extract Pages
+#### Extract Pages
 ```
 POST /pdf/extract-pages
 Content-Type: multipart/form-data
 
 file: document.pdf
 ```
-Returns a ZIP with each page in a separate file.
 
-### Merge PDFs
+#### Merge PDFs
 ```
 POST /pdf/merge
 Content-Type: multipart/form-data
@@ -128,9 +154,8 @@ Content-Type: multipart/form-data
 files: document1.pdf
 files: document2.pdf
 ```
-Maximum of 20 files per request.
 
-### Add Password
+#### Add Password
 ```
 POST /pdf/add-password
 Content-Type: multipart/form-data
@@ -140,7 +165,7 @@ user_password: password123
 owner_password: admin_password (optional)
 ```
 
-### Remove Password
+#### Remove Password
 ```
 POST /pdf/remove-password
 Content-Type: multipart/form-data
@@ -149,7 +174,7 @@ file: document.pdf
 password: password123
 ```
 
-### PDF Info
+#### PDF Info
 ```
 POST /pdf/info
 Content-Type: multipart/form-data
@@ -157,7 +182,7 @@ Content-Type: multipart/form-data
 file: document.pdf
 ```
 
-### Convert to Image
+#### Convert to Image
 ```
 POST /pdf/convert-to-image
 Content-Type: multipart/form-data
@@ -165,72 +190,124 @@ Content-Type: multipart/form-data
 file: document.pdf
 format: png | jpeg | tiff (default: png)
 dpi: 72-600 (default: 150)
-pages: "1-3,5" (optional, default: all)
+pages: "1-3,5" (optional)
 ```
-Returns a single image or ZIP with multiple pages.
 
-### Convert to OFX
+#### Convert to OFX
 ```
 POST /pdf/convert-to-ofx
 Content-Type: multipart/form-data
 
 file: statement.pdf
-bank_id: 001 (bank code)
-account_id: 12345678 (account number)
+bank_id: 001
+account_id: 12345678
 account_type: CHECKING | SAVINGS | CREDITCARD
 ```
-Extracts transactions from bank statements to OFX format.
 
-### Extract Text
+#### Extract Text
 ```
 POST /pdf/extract-text
 Content-Type: multipart/form-data
 
 file: document.pdf
 ```
-Returns JSON with text from each page.
 
-## Usage Example with cURL
+### Video Endpoints
+
+#### Cut Video
+```
+POST /movie/cut
+Content-Type: multipart/form-data
+
+file: video.mp4
+start: 30 (seconds)
+end: 60 (seconds)
+```
+
+#### Transcribe Video
+```
+POST /movie/transcribe
+Content-Type: multipart/form-data
+
+file: video.mp4
+language: pt (optional, auto-detect if empty)
+```
+
+Response:
+```json
+{
+  "text": "Full transcription...",
+  "segments": [
+    {"start": 0.0, "end": 2.5, "text": "Hello world"},
+    {"start": 2.5, "end": 5.0, "text": "How are you?"}
+  ],
+  "language": "en",
+  "duration": 120.5
+}
+```
+
+### Audio Endpoints
+
+#### Cut Audio
+```
+POST /audio/cut
+Content-Type: multipart/form-data
+
+file: audio.mp3
+start: 30 (seconds)
+end: 60 (seconds)
+```
+
+#### Transcribe Audio
+```
+POST /audio/transcribe
+Content-Type: multipart/form-data
+
+file: audio.mp3
+language: pt (optional, auto-detect if empty)
+```
+
+## Usage Examples
+
+### cURL
 
 ```bash
-# Split PDF
 curl -X POST "http://localhost:3002/pdf/split" \
-  -H "X-API-Key: your-secret-key-here" \
+  -H "X-API-Key: your-key" \
   -F "file=@document.pdf" \
   -F "pages=1-3" \
   --output result.pdf
 
-# Convert to Image
-curl -X POST "http://localhost:3002/pdf/convert-to-image" \
-  -H "X-API-Key: your-secret-key-here" \
-  -F "file=@document.pdf" \
-  -F "format=png" \
-  -F "dpi=300" \
-  --output images.zip
+curl -X POST "http://localhost:3002/movie/cut" \
+  -H "X-API-Key: your-key" \
+  -F "file=@video.mp4" \
+  -F "start=30" \
+  -F "end=60" \
+  --output clip.mp4
 
-# Extract Text
-curl -X POST "http://localhost:3002/pdf/extract-text" \
-  -H "X-API-Key: your-secret-key-here" \
-  -F "file=@document.pdf"
+curl -X POST "http://localhost:3002/audio/transcribe" \
+  -H "X-API-Key: your-key" \
+  -F "file=@audio.mp3" \
+  -F "language=pt"
 ```
 
-## CI/CD
+### Python
 
-Deployment is automated via GitHub Actions:
+```python
+import requests
 
-1. **Tests**: Runs all unit tests
-2. **Deploy**: Only runs if all tests pass
+url = "http://localhost:3002/movie/transcribe"
+headers = {"X-API-Key": "your-key"}
+files = {"file": open("video.mp4", "rb")}
+data = {"language": "pt"}
 
-```yaml
-# .github/workflows/deploy.yml
-jobs:
-  test:    # Runs pytest
-  deploy:  # Only runs if test passes (needs: test)
+response = requests.post(url, headers=headers, files=files, data=data)
+print(response.json())
 ```
 
 ## Interactive Documentation
 
-Access Swagger documentation at: `http://localhost:3002/docs`
+Swagger UI: `http://localhost:3002/docs`
 
 ## License
 

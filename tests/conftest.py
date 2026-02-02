@@ -55,7 +55,6 @@ def sample_bank_statement_pdf():
     doc = fitz.open()
     page = doc.new_page()
     
-    # Simulates Zoop format (4 lines per transaction)
     y = 100
     transactions = [
         ("15/01/2026", "PIX", "Pagamento João", "R$ 150,00"),

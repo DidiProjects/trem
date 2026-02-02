@@ -105,19 +105,15 @@ class TestMaliciousFileUpload:
     """Tests to prevent malicious uploads"""
     
     def test_fake_pdf_extension_with_exe_content(self):
-        # .pdf file but with executable content
-        exe_magic = b"MZ"  # .exe magic bytes
+        exe_magic = b"MZ"
         content = exe_magic + b"\x00" * 100
         assert validate_file_type(content, "pdf") == False
     
     def test_fake_pdf_extension_with_zip_content(self):
-        # .pdf file but with ZIP content (possible zip bomb)
         zip_magic = b"PK\x03\x04"
         content = zip_magic + b"\x00" * 100
         assert validate_file_type(content, "pdf") == False
     
     def test_polyglot_file_detection(self):
-        # File that could be interpreted as multiple types
         content = b"%PDF-1.4 but also <script>alert('xss')</script>"
-        # Should pass as valid PDF (correct magic bytes)
         assert validate_file_type(content, "pdf") == True

@@ -2,6 +2,177 @@ import io
 import zipfile
 import pytest
 from app.services import PdfService
+from app.services.videoService import (
+    validate_cut_input as validate_video_cut_input,
+    VideoServiceError,
+    VIDEO_EXTENSIONS
+)
+from app.services.audioService import (
+    validate_cut_input as validate_audio_cut_input,
+    validate_transcription_input,
+    AudioServiceError,
+    AUDIO_EXTENSIONS,
+    VIDEO_EXTENSIONS as AUDIO_VIDEO_EXTENSIONS,
+    SUPPORTED_EXTENSIONS,
+    SUPPORTED_LANGUAGES
+)
+
+
+class TestVideoServiceValidation:
+    def test_validate_cut_input_valid_mp4(self):
+        ext = validate_video_cut_input("video.mp4", 0, 10)
+        assert ext == ".mp4"
+
+    def test_validate_cut_input_valid_mkv(self):
+        ext = validate_video_cut_input("video.mkv", 5, 15)
+        assert ext == ".mkv"
+
+    def test_validate_cut_input_all_extensions(self):
+        for ext in VIDEO_EXTENSIONS:
+            result = validate_video_cut_input(f"video{ext}", 0, 10)
+            assert result == ext
+
+    def test_validate_cut_input_empty_filename(self):
+        with pytest.raises(VideoServiceError) as exc:
+            validate_video_cut_input("", 0, 10)
+        assert "obrigatório" in exc.value.message
+
+    def test_validate_cut_input_none_filename(self):
+        with pytest.raises(VideoServiceError) as exc:
+            validate_video_cut_input(None, 0, 10)
+        assert exc.value.status_code == 400
+
+    def test_validate_cut_input_invalid_extension(self):
+        with pytest.raises(VideoServiceError) as exc:
+            validate_video_cut_input("video.txt", 0, 10)
+        assert "não suportado" in exc.value.message
+
+    def test_validate_cut_input_negative_start(self):
+        with pytest.raises(VideoServiceError) as exc:
+            validate_video_cut_input("video.mp4", -5, 10)
+        assert "inicial" in exc.value.message
+
+    def test_validate_cut_input_end_before_start(self):
+        with pytest.raises(VideoServiceError) as exc:
+            validate_video_cut_input("video.mp4", 10, 5)
+        assert "maior" in exc.value.message
+
+    def test_validate_cut_input_end_equals_start(self):
+        with pytest.raises(VideoServiceError) as exc:
+            validate_video_cut_input("video.mp4", 10, 10)
+        assert "maior" in exc.value.message
+
+    def test_video_service_error_default_status(self):
+        error = VideoServiceError("Test error")
+        assert error.status_code == 400
+        assert error.message == "Test error"
+
+    def test_video_service_error_custom_status(self):
+        error = VideoServiceError("Server error", 500)
+        assert error.status_code == 500
+
+
+class TestAudioServiceValidation:
+    def test_validate_cut_input_valid_mp3(self):
+        ext = validate_audio_cut_input("audio.mp3", 0, 10)
+        assert ext == ".mp3"
+
+    def test_validate_cut_input_valid_wav(self):
+        ext = validate_audio_cut_input("audio.wav", 5, 15)
+        assert ext == ".wav"
+
+    def test_validate_cut_input_all_extensions(self):
+        for ext in AUDIO_EXTENSIONS:
+            result = validate_audio_cut_input(f"audio{ext}", 0, 10)
+            assert result == ext
+
+    def test_validate_cut_input_empty_filename(self):
+        with pytest.raises(AudioServiceError) as exc:
+            validate_audio_cut_input("", 0, 10)
+        assert "obrigatório" in exc.value.message
+
+    def test_validate_cut_input_video_extension_rejected(self):
+        with pytest.raises(AudioServiceError) as exc:
+            validate_audio_cut_input("video.mp4", 0, 10)
+        assert "não suportado" in exc.value.message
+
+    def test_validate_cut_input_negative_start(self):
+        with pytest.raises(AudioServiceError) as exc:
+            validate_audio_cut_input("audio.mp3", -5, 10)
+        assert "inicial" in exc.value.message
+
+    def test_validate_cut_input_end_before_start(self):
+        with pytest.raises(AudioServiceError) as exc:
+            validate_audio_cut_input("audio.mp3", 10, 5)
+        assert "maior" in exc.value.message
+
+
+class TestAudioServiceTranscriptionValidation:
+    def test_validate_transcription_audio_file(self):
+        ext = validate_transcription_input("audio.mp3", None)
+        assert ext == ".mp3"
+
+    def test_validate_transcription_video_file(self):
+        ext = validate_transcription_input("video.mp4", None)
+        assert ext == ".mp4"
+
+    def test_validate_transcription_with_language(self):
+        ext = validate_transcription_input("audio.wav", "pt")
+        assert ext == ".wav"
+
+    def test_validate_transcription_all_languages(self):
+        for lang in SUPPORTED_LANGUAGES:
+            ext = validate_transcription_input("audio.mp3", lang)
+            assert ext == ".mp3"
+
+    def test_validate_transcription_all_extensions(self):
+        for ext in SUPPORTED_EXTENSIONS:
+            result = validate_transcription_input(f"file{ext}", None)
+            assert result == ext
+
+    def test_validate_transcription_empty_filename(self):
+        with pytest.raises(AudioServiceError) as exc:
+            validate_transcription_input("", None)
+        assert "obrigatório" in exc.value.message
+
+    def test_validate_transcription_invalid_extension(self):
+        with pytest.raises(AudioServiceError) as exc:
+            validate_transcription_input("file.txt", None)
+        assert "não suportado" in exc.value.message
+
+    def test_validate_transcription_invalid_language(self):
+        with pytest.raises(AudioServiceError) as exc:
+            validate_transcription_input("audio.mp3", "xyz")
+        assert "Idioma" in exc.value.message
+
+    def test_audio_service_error_default_status(self):
+        error = AudioServiceError("Test error")
+        assert error.status_code == 400
+        assert error.message == "Test error"
+
+    def test_audio_service_error_custom_status(self):
+        error = AudioServiceError("Server error", 500)
+        assert error.status_code == 500
+
+
+class TestExtensionSets:
+    def test_video_extensions_not_empty(self):
+        assert len(VIDEO_EXTENSIONS) > 0
+
+    def test_audio_extensions_not_empty(self):
+        assert len(AUDIO_EXTENSIONS) > 0
+
+    def test_supported_extensions_is_union(self):
+        assert SUPPORTED_EXTENSIONS == AUDIO_VIDEO_EXTENSIONS | AUDIO_EXTENSIONS
+
+    def test_no_overlap_audio_video(self):
+        overlap = VIDEO_EXTENSIONS & AUDIO_EXTENSIONS
+        assert len(overlap) == 0
+
+    def test_supported_languages_contains_common(self):
+        assert "pt" in SUPPORTED_LANGUAGES
+        assert "en" in SUPPORTED_LANGUAGES
+        assert "es" in SUPPORTED_LANGUAGES
 
 
 class TestPdfServiceSplit:

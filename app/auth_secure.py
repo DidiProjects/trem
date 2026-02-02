@@ -12,15 +12,13 @@ logger = logging.getLogger(__name__)
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
-# In-memory rate limiting (for production, use Redis)
 request_counts: dict[str, list[float]] = defaultdict(list)
 failed_attempts: dict[str, list[float]] = defaultdict(list)
 
-# Rate limiting settings
-RATE_LIMIT_REQUESTS = 100  # requests
-RATE_LIMIT_WINDOW = 60  # seconds
-MAX_FAILED_ATTEMPTS = 10  # failed attempts
-BLOCK_DURATION = 300  # blocking duration in seconds
+RATE_LIMIT_REQUESTS = 100
+RATE_LIMIT_WINDOW = 60
+MAX_FAILED_ATTEMPTS = 10
+BLOCK_DURATION = 300
 
 
 def _secure_compare(a: str, b: str) -> bool:
@@ -41,12 +39,10 @@ def _check_rate_limit(client_ip: str) -> None:
     now = time.time()
     window_start = now - RATE_LIMIT_WINDOW
     
-    # Clean old requests
     request_counts[client_ip] = [
         t for t in request_counts[client_ip] if t > window_start
     ]
     
-    # Check limit
     if len(request_counts[client_ip]) >= RATE_LIMIT_REQUESTS:
         logger.warning(f"Rate limit exceeded for IP: {client_ip}")
         raise HTTPException(
@@ -54,7 +50,6 @@ def _check_rate_limit(client_ip: str) -> None:
             detail="Too many requests. Please try again in a few minutes."
         )
     
-    # Record request
     request_counts[client_ip].append(now)
 
 
@@ -63,12 +58,10 @@ def _check_blocked(client_ip: str) -> None:
     now = time.time()
     window_start = now - BLOCK_DURATION
     
-    # Clean old attempts
     failed_attempts[client_ip] = [
         t for t in failed_attempts[client_ip] if t > window_start
     ]
     
-    # Check blocking
     if len(failed_attempts[client_ip]) >= MAX_FAILED_ATTEMPTS:
         logger.warning(f"IP blocked due to failed attempts: {client_ip}")
         raise HTTPException(
