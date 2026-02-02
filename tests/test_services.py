@@ -16,6 +16,17 @@ from app.services.audioService import (
     SUPPORTED_EXTENSIONS,
     SUPPORTED_LANGUAGES
 )
+from app.services.imageService import (
+    validate_image_file,
+    validate_output_format,
+    is_svg,
+    convert_image,
+    compress_image,
+    images_to_pdf,
+    ImageServiceError,
+    IMAGE_EXTENSIONS,
+    OUTPUT_FORMATS
+)
 
 
 class TestVideoServiceValidation:
@@ -366,3 +377,239 @@ class TestTransactionParsing:
         assert "<TRNAMT>100.00" in result
         assert "<TRNAMT>-50.00" in result
         assert "<BALAMT>50.00" in result
+
+
+# ============================================================================
+# IMAGE SERVICE TESTS
+# ============================================================================
+
+class TestImageServiceValidation:
+    def test_validate_image_file_valid_jpg(self):
+        ext = validate_image_file("image.jpg")
+        assert ext == ".jpg"
+
+    def test_validate_image_file_valid_png(self):
+        ext = validate_image_file("image.png")
+        assert ext == ".png"
+
+    def test_validate_image_file_valid_svg(self):
+        ext = validate_image_file("image.svg")
+        assert ext == ".svg"
+
+    def test_validate_image_file_all_extensions(self):
+        for ext in IMAGE_EXTENSIONS:
+            result = validate_image_file(f"image{ext}")
+            assert result == ext
+
+    def test_validate_image_file_empty_filename(self):
+        with pytest.raises(ImageServiceError) as exc:
+            validate_image_file("")
+        assert "obrigatório" in exc.value.message
+
+    def test_validate_image_file_none_filename(self):
+        with pytest.raises(ImageServiceError) as exc:
+            validate_image_file(None)
+        assert exc.value.status_code == 400
+
+    def test_validate_image_file_invalid_extension(self):
+        with pytest.raises(ImageServiceError) as exc:
+            validate_image_file("image.txt")
+        assert "não suportado" in exc.value.message
+
+    def test_validate_output_format_valid(self):
+        for fmt in OUTPUT_FORMATS:
+            result = validate_output_format(fmt)
+            assert result == fmt.lower()
+
+    def test_validate_output_format_uppercase(self):
+        result = validate_output_format("PNG")
+        assert result == "png"
+
+    def test_validate_output_format_invalid(self):
+        with pytest.raises(ImageServiceError) as exc:
+            validate_output_format("xyz")
+        assert "não suportado" in exc.value.message
+
+
+class TestImageServiceSvgDetection:
+    def test_is_svg_valid_svg(self):
+        svg_content = b'<svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>'
+        assert is_svg(svg_content) == True
+
+    def test_is_svg_with_xml_declaration(self):
+        svg_content = b'<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg"></svg>'
+        assert is_svg(svg_content) == True
+
+    def test_is_svg_not_svg(self):
+        png_header = b'\x89PNG\r\n\x1a\n'
+        assert is_svg(png_header) == False
+
+    def test_is_svg_empty(self):
+        assert is_svg(b'') == False
+
+
+class TestImageServiceConvert:
+    @pytest.fixture
+    def sample_png_bytes(self):
+        from PIL import Image
+        img = Image.new('RGB', (100, 100), color='red')
+        buffer = io.BytesIO()
+        img.save(buffer, format='PNG')
+        buffer.seek(0)
+        return buffer.getvalue()
+
+    @pytest.fixture
+    def sample_rgba_png_bytes(self):
+        from PIL import Image
+        img = Image.new('RGBA', (100, 100), color=(255, 0, 0, 128))
+        buffer = io.BytesIO()
+        img.save(buffer, format='PNG')
+        buffer.seek(0)
+        return buffer.getvalue()
+
+    def test_convert_png_to_jpeg(self, sample_png_bytes):
+        result, ext = convert_image(sample_png_bytes, 'jpeg', 90)
+        assert ext == 'jpg'
+        assert result.getvalue()
+
+    def test_convert_png_to_webp(self, sample_png_bytes):
+        result, ext = convert_image(sample_png_bytes, 'webp', 90)
+        assert ext == 'webp'
+        assert result.getvalue()
+
+    def test_convert_png_to_gif(self, sample_png_bytes):
+        result, ext = convert_image(sample_png_bytes, 'gif')
+        assert ext == 'gif'
+        assert result.getvalue()
+
+    def test_convert_png_to_bmp(self, sample_png_bytes):
+        result, ext = convert_image(sample_png_bytes, 'bmp')
+        assert ext == 'bmp'
+        assert result.getvalue()
+
+    def test_convert_png_to_tiff(self, sample_png_bytes):
+        result, ext = convert_image(sample_png_bytes, 'tiff')
+        assert ext == 'tiff'
+        assert result.getvalue()
+
+    def test_convert_rgba_to_jpeg(self, sample_rgba_png_bytes):
+        result, ext = convert_image(sample_rgba_png_bytes, 'jpeg', 90)
+        assert ext == 'jpg'
+        assert result.getvalue()
+
+    def test_convert_raster_to_svg_fails(self, sample_png_bytes):
+        with pytest.raises(ImageServiceError) as exc:
+            convert_image(sample_png_bytes, 'svg')
+        assert "SVG não é suportada" in exc.value.message
+
+
+class TestImageServiceCompress:
+    @pytest.fixture
+    def sample_jpeg_bytes(self):
+        from PIL import Image
+        img = Image.new('RGB', (500, 500), color='blue')
+        buffer = io.BytesIO()
+        img.save(buffer, format='JPEG', quality=100)
+        buffer.seek(0)
+        return buffer.getvalue()
+
+    @pytest.fixture
+    def sample_large_png_bytes(self):
+        from PIL import Image
+        img = Image.new('RGB', (2000, 2000), color='green')
+        buffer = io.BytesIO()
+        img.save(buffer, format='PNG')
+        buffer.seek(0)
+        return buffer.getvalue()
+
+    def test_compress_returns_stats(self, sample_jpeg_bytes):
+        result, ext, stats = compress_image(sample_jpeg_bytes, 50)
+        
+        assert ext == 'jpg'
+        assert 'original_size' in stats
+        assert 'compressed_size' in stats
+        assert 'reduction_percent' in stats
+        assert 'original_dimensions' in stats
+        assert 'final_dimensions' in stats
+
+    def test_compress_reduces_size(self, sample_jpeg_bytes):
+        result, ext, stats = compress_image(sample_jpeg_bytes, 30)
+        
+        assert stats['compressed_size'] <= stats['original_size']
+
+    def test_compress_with_max_dimension(self, sample_large_png_bytes):
+        result, ext, stats = compress_image(sample_large_png_bytes, 70, max_dimension=800)
+        
+        assert stats['final_dimensions'][0] <= 800
+        assert stats['final_dimensions'][1] <= 800
+
+    def test_compress_invalid_quality_low(self, sample_jpeg_bytes):
+        with pytest.raises(ImageServiceError) as exc:
+            compress_image(sample_jpeg_bytes, 0)
+        assert "Qualidade" in exc.value.message
+
+    def test_compress_invalid_quality_high(self, sample_jpeg_bytes):
+        with pytest.raises(ImageServiceError) as exc:
+            compress_image(sample_jpeg_bytes, 101)
+        assert "Qualidade" in exc.value.message
+
+
+class TestImageServiceToPdf:
+    @pytest.fixture
+    def sample_images(self):
+        from PIL import Image
+        images = []
+        for color in ['red', 'green', 'blue']:
+            img = Image.new('RGB', (100, 100), color=color)
+            buffer = io.BytesIO()
+            img.save(buffer, format='PNG')
+            buffer.seek(0)
+            images.append(buffer.getvalue())
+        return images
+
+    def test_images_to_pdf_single_layout(self, sample_images):
+        result = images_to_pdf(sample_images, layout='single')
+        assert result.getvalue()
+        # Check PDF header
+        assert result.getvalue()[:4] == b'%PDF'
+
+    def test_images_to_pdf_grouped_layout(self, sample_images):
+        result = images_to_pdf(sample_images, layout='grouped', images_per_page=2)
+        assert result.getvalue()
+        assert result.getvalue()[:4] == b'%PDF'
+
+    def test_images_to_pdf_empty_list(self):
+        with pytest.raises(ImageServiceError) as exc:
+            images_to_pdf([])
+        assert "Nenhuma imagem" in exc.value.message
+
+    def test_images_to_pdf_single_image(self, sample_images):
+        result = images_to_pdf([sample_images[0]], layout='single')
+        assert result.getvalue()[:4] == b'%PDF'
+
+
+class TestImageServiceError:
+    def test_image_service_error_default_status(self):
+        error = ImageServiceError("Test error")
+        assert error.status_code == 400
+        assert error.message == "Test error"
+
+    def test_image_service_error_custom_status(self):
+        error = ImageServiceError("Server error", 500)
+        assert error.status_code == 500
+
+
+class TestImageExtensionSets:
+    def test_image_extensions_not_empty(self):
+        assert len(IMAGE_EXTENSIONS) > 0
+
+    def test_output_formats_not_empty(self):
+        assert len(OUTPUT_FORMATS) > 0
+
+    def test_common_formats_supported(self):
+        assert '.jpg' in IMAGE_EXTENSIONS
+        assert '.png' in IMAGE_EXTENSIONS
+        assert '.svg' in IMAGE_EXTENSIONS
+        assert 'jpeg' in OUTPUT_FORMATS
+        assert 'png' in OUTPUT_FORMATS
+        assert 'webp' in OUTPUT_FORMATS

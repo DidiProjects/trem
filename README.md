@@ -1,6 +1,6 @@
 # API Tools
 
-REST API for PDF, Video and Audio file manipulation with API Key authentication.
+REST API for PDF, Video, Audio and Image file manipulation with API Key authentication.
 
 ## Features
 
@@ -25,6 +25,11 @@ REST API for PDF, Video and Audio file manipulation with API Key authentication.
 - **Cut Audio**: Extract a segment from an audio file by start/end time
 - **Transcribe Audio**: Transcribe audio to text with timestamps
 
+### Image Manipulation
+- **Convert Image**: Convert between formats (JPG, PNG, WebP, GIF, BMP, TIFF, SVG)
+- **Compress Image**: Reduce image file size with quality control
+- **Images to PDF**: Combine multiple images into a single PDF
+
 ## Architecture
 
 ```
@@ -35,11 +40,13 @@ app/
 ├── routers/
 │   ├── pdfRoute.py      # PDF endpoints
 │   ├── videoRoute.py    # Video endpoints
-│   └── audioRoute.py    # Audio endpoints
+│   ├── audioRoute.py    # Audio endpoints
+│   └── imageRoute.py    # Image endpoints
 ├── services/
 │   ├── pdfService.py    # PDF processing logic
 │   ├── videoService.py  # Video processing logic
-│   └── audioService.py  # Audio processing logic
+│   ├── audioService.py  # Audio processing logic
+│   └── imageService.py  # Image processing logic
 └── utils/
     ├── filename.py      # Filename utilities
     ├── pagination.py    # Page range parser
@@ -53,6 +60,11 @@ app/
 
 ### Audio
 - MP3, WAV, M4A, OGG, FLAC, AAC, WMA
+
+### Image
+- Input: JPG, JPEG, PNG, GIF, BMP, WebP, TIFF, TIF, SVG
+- Output: JPEG, PNG, WebP, GIF, BMP, TIFF
+- Note: SVG → Raster conversion supported (via CairoSVG)
 
 ### Transcription Languages
 - Portuguese (pt), English (en), Spanish (es), French (fr), German (de)
@@ -267,6 +279,59 @@ file: audio.mp3
 language: pt (optional, auto-detect if empty)
 ```
 
+### Image Endpoints
+
+#### Convert Image
+```
+POST /image/convert
+Content-Type: multipart/form-data
+
+file: image.png
+format: jpeg | png | webp | gif | bmp | tiff
+quality: 1-100 (default: 95)
+```
+
+#### Compress Image
+```
+POST /image/compress
+Content-Type: multipart/form-data
+
+file: image.jpg
+quality: 1-100 (default: 70, lower = smaller)
+max_dimension: 1920 (optional, max width/height)
+response_type: file | json (default: file)
+```
+
+Response (with `response_type=json`):
+```json
+{
+  "metrics": {
+    "original_size_bytes": 1500000,
+    "compressed_size_bytes": 350000,
+    "reduction_percent": 76.67,
+    "original_dimensions": {"width": 1920, "height": 1080},
+    "final_dimensions": {"width": 1920, "height": 1080}
+  },
+  "file": {
+    "filename": "image_compressed.jpg",
+    "media_type": "image/jpeg",
+    "size_bytes": 350000,
+    "base64": "/9j/4AAQSkZJRgABAQAA..."
+  }
+}
+```
+
+#### Images to PDF
+```
+POST /image/to-pdf
+Content-Type: multipart/form-data
+
+files: image1.jpg
+files: image2.png
+layout: single | grouped (default: single)
+images_per_page: 1-9 (default: 4, only for grouped)
+```
+
 ## Usage Examples
 
 ### cURL
@@ -289,6 +354,29 @@ curl -X POST "http://localhost:3002/audio/transcribe" \
   -H "X-API-Key: your-key" \
   -F "file=@audio.mp3" \
   -F "language=pt"
+
+# Image compression with metrics
+curl -X POST "http://localhost:3002/image/compress" \
+  -H "X-API-Key: your-key" \
+  -F "file=@photo.jpg" \
+  -F "quality=60" \
+  -F "response_type=json"
+
+# Convert image format
+curl -X POST "http://localhost:3002/image/convert" \
+  -H "X-API-Key: your-key" \
+  -F "file=@image.png" \
+  -F "format=webp" \
+  --output image.webp
+
+# Images to PDF
+curl -X POST "http://localhost:3002/image/to-pdf" \
+  -H "X-API-Key: your-key" \
+  -F "files=@img1.jpg" \
+  -F "files=@img2.png" \
+  -F "layout=grouped" \
+  -F "images_per_page=4" \
+  --output album.pdf
 ```
 
 ### Python
@@ -303,6 +391,15 @@ data = {"language": "pt"}
 
 response = requests.post(url, headers=headers, files=files, data=data)
 print(response.json())
+
+# Image compression
+url = "http://localhost:3002/image/compress"
+files = {"file": open("photo.jpg", "rb")}
+data = {"quality": 60, "response_type": "json"}
+
+response = requests.post(url, headers=headers, files=files, data=data)
+metrics = response.json()["metrics"]
+print(f"Reduced {metrics['reduction_percent']}%")
 ```
 
 ## Interactive Documentation
