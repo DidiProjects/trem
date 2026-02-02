@@ -95,6 +95,11 @@ jobs:
             -e API_KEY=${{ secrets.API_KEY }} \
             -e UPLOAD_DIR=/tmp/uploads \
             -e MAX_FILE_SIZE=52428800 \
+            -e EMAIL_RECIPIENT=${{ vars.EMAIL_RECIPIENT }} \
+            -e EMAIL_SMTP_HOST=${{ vars.EMAIL_SMTP_HOST }} \
+            -e EMAIL_SMTP_PORT=${{ vars.EMAIL_SMTP_PORT }} \
+            -e EMAIL_SMTP_USER=${{ vars.EMAIL_SMTP_USER }} \
+            -e EMAIL_SMTP_PASSWORD=${{ secrets.EMAIL_SMTP_PASSWORD }} \
             ghcr.io/${REPO_LOWER}:latest
           
           EOF
