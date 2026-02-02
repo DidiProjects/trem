@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Form, HTTPException
+from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.responses import JSONResponse
 from typing import Optional
+from app.auth_secure import verify_api_key
 from app.services.emailService import send_feedback_email, EmailServiceError
 
 router = APIRouter()
@@ -10,7 +11,8 @@ router = APIRouter()
 async def send_feedback(
     type: str = Form(...),
     message: str = Form(...),
-    email: Optional[str] = Form(None)
+    email: Optional[str] = Form(None),
+    api_key: str = Depends(verify_api_key)
 ):
     """
     Enviar feedback, sugestão ou reporte de bug.
