@@ -174,6 +174,48 @@ function setupFormHandlers() {
         }
     });
 
+    // Movie Transcribe Form
+    document.getElementById('transcribeMovieForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('file', document.getElementById('transcribeMovieFile').files[0]);
+        const language = document.getElementById('transcribeMovieLanguage').value;
+        if (language) {
+            formData.append('language', language);
+        }
+
+        const response = await makeRequest('/movie/transcribe', formData);
+        if (response) {
+            const data = await response.json();
+            hideLoading();
+            const resultBox = document.getElementById('transcribeMovieResult');
+            resultBox.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            resultBox.classList.remove('hidden');
+            showToast('Transcrição do vídeo concluída!');
+        }
+    });
+
+    // Audio Transcribe Form
+    document.getElementById('transcribeForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('file', document.getElementById('transcribeFile').files[0]);
+        const language = document.getElementById('transcribeLanguage').value;
+        if (language) {
+            formData.append('language', language);
+        }
+
+        const response = await makeRequest('/audio/transcribe', formData);
+        if (response) {
+            const data = await response.json();
+            hideLoading();
+            const resultBox = document.getElementById('transcribeResult');
+            resultBox.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            resultBox.classList.remove('hidden');
+            showToast('Transcrição concluída!');
+        }
+    });
+
     document.getElementById('extractForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData();

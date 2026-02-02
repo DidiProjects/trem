@@ -1,11 +1,13 @@
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from starlette.background import BackgroundTask
 import tempfile
 import os
-from app.services.videoService import cut_video
+from app.services.videoService import cut_video, validate_cut_input, VideoServiceError
+from app.services.audioService import transcribe, validate_transcription_input, AudioServiceError
 
 router = APIRouter()
+
 
 def cleanup_files(*paths):
     """Remove arquivos temporários após envio da resposta"""
@@ -16,28 +18,23 @@ def cleanup_files(*paths):
         except Exception:
             pass
 
+
 @router.post("/cut")
 async def movie_cut(
     file: UploadFile = File(...),
     start: float = Form(...),
     end: float = Form(...)
 ):
-    # Validações
-    if start < 0:
-        raise HTTPException(status_code=400, detail="Tempo inicial deve ser >= 0")
-    if end <= start:
-        raise HTTPException(status_code=400, detail="Tempo final deve ser maior que o inicial")
-    
-    # Extensões de vídeo aceitas
-    allowed_extensions = {'.mp4', '.avi', '.mov', '.mkv', '.webm', '.wmv', '.flv', '.m4v'}
-    ext = os.path.splitext(file.filename or '')[1].lower()
-    if ext not in allowed_extensions:
-        raise HTTPException(status_code=400, detail=f"Formato não suportado. Use: {', '.join(allowed_extensions)}")
-    
+    """
+    Recorta um vídeo entre os tempos definidos.
+    """
     temp_in_path = None
     temp_out_path = None
     
     try:
+        # Validações no service
+        ext = validate_cut_input(file.filename, start, end)
+        
         # Salvar arquivo de entrada
         with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp_in:
             temp_in.write(await file.read())
@@ -61,8 +58,43 @@ async def movie_cut(
             media_type="video/mp4",
             background=BackgroundTask(cleanup_files, temp_in_path, temp_out_path)
         )
-    except HTTPException:
-        raise
+    
+    except VideoServiceError as e:
+        cleanup_files(temp_in_path, temp_out_path)
+        raise HTTPException(status_code=e.status_code, detail=e.message)
     except Exception as e:
         cleanup_files(temp_in_path, temp_out_path)
-        raise HTTPException(status_code=500, detail=f"Erro ao processar vídeo: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
+
+
+@router.post("/transcribe")
+async def movie_transcribe(
+    file: UploadFile = File(...),
+    language: str = Form(None)
+):
+    """
+    Transcreve o áudio de um vídeo para texto.
+    Reutiliza o serviço de transcrição de áudio.
+    """
+    temp_path = None
+    
+    try:
+        # Validações no service
+        ext = validate_transcription_input(file.filename, language)
+        
+        # Salvar arquivo de entrada
+        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp_file:
+            temp_file.write(await file.read())
+            temp_path = temp_file.name
+        
+        # Transcrever
+        result = transcribe(temp_path, language)
+        
+        return JSONResponse(content=result)
+    
+    except AudioServiceError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
+    finally:
+        cleanup_files(temp_path)
