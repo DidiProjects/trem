@@ -393,7 +393,7 @@ JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
 | 3    | PostgreSQL: modelos ORM + Alembic + primeira migration            | ✅     |
 | 4    | Autenticação: Argon2id + JWT RS256 + fluxo completo              | ✅     |
 | 5    | CRUD de usuários + fluxo de senha provisória                     | ✅     |
-| 6    | Migrar routers existentes para JWT + perfis                      | 🔲     |
+| 6    | Migrar routers existentes para JWT + perfis                      | ✅     |
 | 7    | Cliente HTTP para API aérea                                       | ✅     |
 | 8    | Docker Compose com postgres, adminer e rede compartilhada        | ✅     |
 | 9    | Testes e CI/CD                                                    | 🔲     |

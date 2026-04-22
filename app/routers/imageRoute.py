@@ -6,7 +6,8 @@ import os
 import io
 import base64
 from typing import List
-from app.auth_secure import verify_api_key
+from app.api.v1.dependencies import require_profile
+from app.domain.entities.user import User
 from app.services.imageService import (
     images_to_pdf,
     convert_image,
@@ -34,7 +35,7 @@ async def images_to_pdf_endpoint(
     files: List[UploadFile] = File(...),
     layout: str = Form("single"),
     images_per_page: int = Form(4),
-    api_key: str = Depends(verify_api_key)
+    _: User = Depends(require_profile("file_editor"))
 ):
     if not files:
         raise HTTPException(status_code=400, detail="Nenhum arquivo enviado")
@@ -73,7 +74,7 @@ async def convert_image_endpoint(
     file: UploadFile = File(...),
     format: str = Form(...),
     quality: int = Form(95),
-    api_key: str = Depends(verify_api_key)
+    _: User = Depends(require_profile("file_editor"))
 ):
     try:
         validate_image_file(file.filename)
@@ -118,7 +119,7 @@ async def compress_image_endpoint(
     quality: int = Form(70),
     max_dimension: int = Form(None),
     response_type: str = Form("file"),
-    api_key: str = Depends(verify_api_key)
+    _: User = Depends(require_profile("file_editor"))
 ):
     """
     Comprime uma imagem.
@@ -192,7 +193,7 @@ async def compress_image_info_endpoint(
     quality: int = Form(70),
     max_dimension: int = Form(None),
     include_file: bool = Form(False),
-    api_key: str = Depends(verify_api_key)
+    _: User = Depends(require_profile("file_editor"))
 ):
     """
     Retorna métricas de compressão em JSON.
